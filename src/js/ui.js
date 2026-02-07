@@ -133,7 +133,7 @@ function updateStatsDisplay(playerStats) {
         // Calculate grand totals for points and mistakes
         actionKeys.forEach(key => {
             const actionName = ACTIONS_MAP[key];
-            if (actionName === 'Service' || actionName === 'Attack' || actionName === 'Block') {
+            if (actionName === 'Serve' || actionName === 'Attack' || actionName === 'Block') {
                 grandTotalPoints += totalsByAction[actionName].positive;
             }
             grandTotalMistakes += totalsByAction[actionName].negative;
@@ -197,7 +197,7 @@ function updateStatsDisplay(playerStats) {
                             setHasStats = true;
                         }
                         
-                        if (actionName === 'Service' || actionName === 'Attack' || actionName === 'Block') {
+                        if (actionName === 'Serve' || actionName === 'Attack' || actionName === 'Block') {
                             setPoints += counts.positive;
                         }
                         setMistakes += counts.negative;
@@ -419,7 +419,7 @@ function handleHashChange() {
                     // Calculate grand totals
                     actionKeys.forEach(key => {
                         const actionName = ACTIONS_MAP[key];
-                        if (actionName === 'Service' || actionName === 'Attack' || actionName === 'Block') {
+                        if (actionName === 'Serve' || actionName === 'Attack' || actionName === 'Block') {
                             grandTotalPoints += totalsByAction[actionName].positive;
                         }
                         grandTotalMistakes += totalsByAction[actionName].negative;
@@ -463,7 +463,7 @@ function handleHashChange() {
                                         setHasStats = true;
                                     }
                                     
-                                    if (actionName === 'Service' || actionName === 'Attack' || actionName === 'Block') {
+                                    if (actionName === 'Serve' || actionName === 'Attack' || actionName === 'Block') {
                                         setPoints += counts.positive;
                                     }
                                     setMistakes += counts.negative;
@@ -596,7 +596,7 @@ function renderActionTracker() {
                 recordPlayerAction(p.id, actionToRecord, outcome);
 
                 // If service or receive, auto-switch to attack
-                if (actionToRecord === 'Service' || actionToRecord === 'Receive') {
+                if (actionToRecord === 'Serve' || actionToRecord === 'Recv') {
                     selectedAction = 'Attack';
                 }
 

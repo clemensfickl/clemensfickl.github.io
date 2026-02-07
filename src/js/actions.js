@@ -1,8 +1,8 @@
 // actions.js: handles game actions and statistics tracking.
 
 const actions = {
-    SERVICE: 'Service',
-    RECEIVE: 'Receive',
+    SERVICE: 'Serve',
+    RECEIVE: 'Recv',
     ATTACK: 'Attack',
     BLOCK: 'Block',
     OTHER: 'Other'
