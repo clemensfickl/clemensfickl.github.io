@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volleyball Stats Tracker</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <header>
+        <h1>Volleyball Statistics</h1>
+    </header>
+    <nav id="main-nav" class="main-nav">
+        <button id="nav-registration" data-screen="registration" class="btn">Registration</button>
+        <button id="nav-actions" data-screen="actions" class="btn">Actions</button>
+        <button id="nav-statistics" data-screen="statistics" class="btn">Statistics</button>
+    </nav>
+    <main>
+        <section id="registration">
+            <h2>Player Registration</h2>
+            <form id="player-form">
+                <input type="text" id="player-name" placeholder="Enter player name" required>
+                <button type="submit" class="btn btn-primary">Register Player</button>
+            </form>
+            <ul id="player-list"></ul>
+        </section>
+        <section id="position-assignment">
+            <h2>Assign Positions</h2>
+            <div id="positions"></div>
+        </section>
+        <section id="action-tracking">
+            <div class="page-header">
+                <h2>Track Actions</h2>
+                <div id="set-selector-container"></div>
+                <button id="undo-btn" class="btn btn-secondary">Undo</button>
+            </div>
+            <div id="action-buttons"></div>
+        </section>
+        <section id="statistics">
+            <h2>Game Statistics</h2>
+            <div id="stats-display"></div>
+            <div class="stats-actions">
+                <button id="export-csv" class="btn btn-secondary">Export as CSV</button>
+                <button id="reset-stats" class="btn btn-danger">Reset All Statistics</button>
+            </div>
+        </section>
+    </main>
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>

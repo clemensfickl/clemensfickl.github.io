@@ -1,0 +1,388 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+header {
+    background: #35424a;
+    color: #ffffff;
+    padding: 10px 0;
+    text-align: center;
+}
+
+h1 {
+    margin: 0;
+}
+
+/* Main Navigation */
+#main-nav {
+    display: flex;
+    background-color: #ffffff;
+    border-bottom: 2px solid #dee2e6;
+    padding: 0;
+    margin: 0;
+}
+
+#main-nav .btn {
+    flex: 1;
+    margin: 0;
+    border: none;
+    border-radius: 0;
+    padding: 1rem;
+    background-color: #ffffff;
+    color: #6c757d;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease-in-out;
+}
+
+#main-nav .btn:hover {
+    background-color: #f8f9fa;
+    color: #495057;
+}
+
+#main-nav .btn.active {
+    color: #007bff;
+    border-bottom-color: #007bff;
+    background-color: #ffffff;
+    font-weight: 600;
+}
+
+.container {
+    width: 80%;
+    margin: auto;
+    overflow: hidden;
+}
+
+/* Player List */
+#player-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.player-item {
+    display: flex;
+    align-items: center;
+    margin-left: 0.5rem;
+}
+
+.player-name {
+    margin-left: 0.25rem;
+}
+
+.btn.delete-player {
+    padding: 0rem 0.2rem;
+    font-size: 0.75rem;
+}
+
+/* General Button Styles */
+button, .btn {
+    border: 1px solid transparent;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    margin: 0.25rem;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-primary:hover {
+    background-color: #0069d9;
+    border-color: #0062cc;
+}
+
+.btn-secondary {
+    color: #fff;
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+}
+
+.btn-danger {
+    color: #fff;
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+/* Action Select Buttons */
+.action-select-wrap {
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.action-select-btn {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    color: #343a40;
+}
+
+.action-select-btn.active {
+    color: #fff;
+    background-color: #007bff !important;
+    border-color: #007bff !important;
+}
+
+/* Player Action Rows */
+.onfield-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem; /* Space between player rows */
+}
+
+.onfield-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto; /* name | stat buttons | action buttons */
+    grid-template-areas:
+        "name   stats-controls   action-controls"
+        "counts stats-controls   action-controls";
+    align-items: center;
+    gap: 0 0.5rem; /* No row gap, some column gap */
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 0.5rem;
+}
+
+.onfield-name {
+    grid-area: name;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.stats-controls {
+    grid-area: stats-controls;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+}
+
+.action-controls {
+    grid-area: action-controls;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.big-btn {
+    font-weight: bold;
+    font-size: 1.5rem;
+    width: 50px;
+    height: 50px;
+    padding: 0;
+    text-align: center;
+}
+
+.big-btn.positive { background-color: #28a745; color: white; }
+.big-btn.neutral { background-color: #ffc107; color: black; }
+.big-btn.negative { background-color: #dc3545; color: white; }
+
+.swap-libero, .exchange-btn {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+    width: 50px; /* Match width of a big-btn */
+}
+
+.player-counts {
+    grid-area: counts;
+    font-family: monospace;
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal {
+    background: white;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    min-width: 300px;
+}
+
+.modal-buttons {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+
+.player-list {
+    list-style: none;
+    padding: 0;
+}
+
+.player-list li {
+    background: #ffffff;
+    margin: 5px 0;
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+.statistics {
+    margin-top: 20px;
+    background: #ffffff;
+    padding: 15px;
+    border: 1px solid #ddd;
+}
+
+footer {
+    text-align: center;
+    padding: 10px 0;
+    background: #35424a;
+    color: #ffffff;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+}
+
+.action-select-wrap {
+    margin-bottom: 1rem;
+}
+
+.action-select-btn {
+    padding: 0.5rem 1rem;
+    margin-right: 0.5rem;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+    cursor: pointer;
+}
+
+.action-select-btn.active {
+    background-color: #007bff !important;
+    color: white !important;
+    border-color: #007bff !important;
+}
+
+/* Position Assignment */
+#positions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.position-item {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    align-items: center;
+    gap: 10px;
+}
+
+.position-item label {
+    text-align: right;
+}
+
+.position-item select {
+    max-width: 150px;
+}
+
+main {
+    padding: 0.5rem;
+}
+
+/* Statistics Table */
+#stats-display {
+    overflow-x: auto; /* Allow horizontal scrolling on small screens */
+}
+
+.stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
+.stats-table th, .stats-table td {
+    border: 1px solid #ddd;
+    padding: 0.4rem;
+    text-align: center;
+}
+
+.stats-table thead {
+    background-color: #f2f2f2;
+}
+
+.stats-table .player-name-col {
+    text-align: left;
+    font-weight: bold;
+    width: 120px;
+}
+
+.stats-table .action-header {
+    font-weight: bold;
+}
+
+.stats-table .sub-header th {
+    font-weight: normal;
+    font-size: 0.8rem;
+}
+
+/* New styles for actions page header */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.page-header h2 {
+    margin: 0;
+    flex: 1;
+}
+
+#set-selector-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#set-selector-container label {
+    margin-right: 0;
+}
+
+#undo-btn {
+    white-space: nowrap;
+}
+
+/* Statistics actions buttons */
+.stats-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.stats-actions .btn {
+    flex: 1;
+    min-width: 150px;
+}
