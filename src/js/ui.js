@@ -596,8 +596,12 @@ function renderActionTracker() {
                 recordPlayerAction(p.id, actionToRecord, outcome);
 
                 // If service or receive, auto-switch to attack
-                if (actionToRecord === 'Serve' || actionToRecord === 'Recv') {
+                if ((actionToRecord === 'Serve' && outcome === 'neutral') || (actionToRecord === 'Recv' && ['positive', 'neutral'].includes(outcome))) {
                     selectedAction = 'Attack';
+                } else if (outcome === 'positive') {
+                    selectedAction = 'Serve';
+                } else if (outcome === 'negative') {
+                    selectedAction = 'Recv';
                 }
 
                 // update stats display on the statistics page
