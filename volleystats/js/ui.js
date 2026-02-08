@@ -1,6 +1,6 @@
 // UI module: handles registration form, player list rendering and basic UI helpers.
 import { addPlayer, removePlayer, getPlayers, assignPosition, swapWithLibero, exchangeWithBench } from './players.js';
-import { actions as ACTIONS_MAP, recordPlayerAction, getPlayerStatistics, getCurrentSet, setCurrentSet, undoLastAction, resetAllStatistics } from './actions.js';
+import { actions as ACTIONS_MAP, recordPlayerAction, recordOpponentError, getPlayerStatistics, getOpponentErrors, getCurrentSet, setCurrentSet, undoLastAction, resetAllStatistics } from './actions.js';
 import { exportCSV } from './export-csv.js';
 
 let selectedAction = null;
@@ -567,6 +567,7 @@ function renderActionTracker() {
     onFieldPlayers.sort((a, b) => onFieldKeys.indexOf(a.position) - onFieldKeys.indexOf(b.position));
 
     const stats = getPlayerStatistics();
+    const opponentStats = getOpponentErrors();
 
     const list = document.createElement('div');
     list.className = 'onfield-list';
@@ -664,6 +665,57 @@ function renderActionTracker() {
 
         list.appendChild(row);
     });
+
+    const opponentRow = document.createElement('div');
+    opponentRow.className = 'onfield-row opponent-row';
+
+    const opponentLabel = document.createElement('div');
+    opponentLabel.className = 'onfield-name';
+    opponentLabel.textContent = 'Opp Err';
+    opponentRow.appendChild(opponentLabel);
+
+    const opponentControls = document.createElement('div');
+    opponentControls.className = 'onfield-controls stats-controls opponent-controls';
+
+    const opponentActions = ['Serve', 'Atk', 'Oth'];
+    opponentActions.forEach(actionName => {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-danger opponent-action-btn';
+        btn.textContent = actionName;
+        btn.addEventListener('click', () => {
+            recordOpponentError(actionName);
+            selectedAction = 'Serve';
+            updateStatsDisplay(getPlayerStatistics() || {});
+            renderActionTracker();
+        });
+        opponentControls.appendChild(btn);
+    });
+    opponentRow.appendChild(opponentControls);
+
+    const opponentActionsSpacer = document.createElement('div');
+    opponentActionsSpacer.className = 'onfield-controls action-controls opponent-actions-spacer';
+    opponentRow.appendChild(opponentActionsSpacer);
+
+    const opponentCounts = document.createElement('div');
+    opponentCounts.className = 'player-counts opponent-counts';
+
+    const currentSet = getCurrentSet();
+    const totals = { Serve: 0, Atk: 0, Oth: 0 };
+    Object.values(opponentStats || {}).forEach(setStats => {
+        opponentActions.forEach(actionName => {
+            totals[actionName] += (setStats && setStats[actionName]) ? setStats[actionName] : 0;
+        });
+    });
+
+    const currentSetStats = (opponentStats && opponentStats[currentSet]) ? opponentStats[currentSet] : {};
+    const shortLabels = { Serve: 'S', Atk: 'A', Oth: 'O' };
+    opponentCounts.textContent = opponentActions.map(actionName => {
+        const current = currentSetStats[actionName] || 0;
+        return `${shortLabels[actionName]} ${current}(${totals[actionName]})`;
+    }).join('  ');
+
+    opponentRow.appendChild(opponentCounts);
+    list.appendChild(opponentRow);
 
     container.appendChild(list);
 }

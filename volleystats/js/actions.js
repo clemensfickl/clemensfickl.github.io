@@ -9,6 +9,7 @@ const actions = {
 };
 
 let playerStatistics = {}; // { [playerId]: { sets: { [setNumber]: { [actionName]: ... } } } }
+let opponentErrors = {}; // { [setNumber]: { [actionName]: count } }
 let currentSet = 1;
 let actionStack = []; // Store all actions for undo
 
@@ -22,6 +23,18 @@ function getPlayerStatistics() {
 
 function savePlayerStatistics() {
     localStorage.setItem('volleyballPlayerStatistics', JSON.stringify(playerStatistics));
+}
+
+function getOpponentErrors() {
+    const stats = localStorage.getItem('volleyballOpponentErrors');
+    if (stats) {
+        opponentErrors = JSON.parse(stats);
+    }
+    return opponentErrors;
+}
+
+function saveOpponentErrors() {
+    localStorage.setItem('volleyballOpponentErrors', JSON.stringify(opponentErrors));
 }
 
 function saveActionStack() {
@@ -49,10 +62,28 @@ function recordPlayerAction(playerId, action, outcome) {
     playerStatistics[playerId].sets[currentSet][action][outcome]++;
     
     // Push to action stack for undo
-    actionStack.push({ playerId, action, outcome, set: currentSet });
+    actionStack.push({ type: 'player', playerId, action, outcome, set: currentSet });
     saveActionStack();
     
     savePlayerStatistics();
+}
+
+function recordOpponentError(action) {
+    if (!Object.keys(opponentErrors).length) {
+        getOpponentErrors();
+    }
+    if (!opponentErrors[currentSet]) {
+        opponentErrors[currentSet] = {};
+    }
+    if (!opponentErrors[currentSet][action]) {
+        opponentErrors[currentSet][action] = 0;
+    }
+
+    opponentErrors[currentSet][action]++;
+
+    actionStack.push({ type: 'opponent', action, set: currentSet });
+    saveActionStack();
+    saveOpponentErrors();
 }
 
 function undoLastAction() {
@@ -62,6 +93,20 @@ function undoLastAction() {
 
     const lastAction = actionStack.pop();
     const { playerId, action, outcome, set } = lastAction;
+    const actionType = lastAction.type || 'player';
+
+    if (actionType === 'opponent') {
+        if (!opponentErrors[set]) {
+            getOpponentErrors();
+        }
+        if (opponentErrors[set] && opponentErrors[set][action] > 0) {
+            opponentErrors[set][action]--;
+            saveActionStack();
+            saveOpponentErrors();
+            return true;
+        }
+        return false;
+    }
     
     if (playerStatistics[playerId] && 
         playerStatistics[playerId].sets[set] && 
@@ -90,12 +135,14 @@ function setCurrentSet(setNumber) {
 
 function resetAllStatistics() {
     playerStatistics = {};
+    opponentErrors = {};
     actionStack = [];
     currentSet = 1;
     localStorage.removeItem('volleyballPlayerStatistics');
+    localStorage.removeItem('volleyballOpponentErrors');
     localStorage.removeItem('volleyballActionStack');
     localStorage.setItem('volleyballCurrentSet', '1');
 }
 
 // expose functions
-export { actions, recordPlayerAction, getPlayerStatistics, getCurrentSet, setCurrentSet, undoLastAction, loadActionStack, resetAllStatistics };
+export { actions, recordPlayerAction, recordOpponentError, getPlayerStatistics, getOpponentErrors, getCurrentSet, setCurrentSet, undoLastAction, loadActionStack, resetAllStatistics };

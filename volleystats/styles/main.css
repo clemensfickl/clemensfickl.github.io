@@ -195,6 +195,15 @@ button, .btn {
     margin-top: 0.25rem;
 }
 
+.opponent-row {
+    background-color: #fff3f3;
+    border-color: #f1b0b7;
+}
+
+.opponent-action-btn {
+    min-width: 64px;
+}
+
 /* Modal Styles */
 .modal-overlay {
     position: fixed;
