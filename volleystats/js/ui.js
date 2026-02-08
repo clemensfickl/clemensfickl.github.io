@@ -700,19 +700,23 @@ function renderActionTracker() {
     opponentCounts.className = 'player-counts opponent-counts';
 
     const currentSet = getCurrentSet();
-    const totals = { Serve: 0, Atk: 0, Oth: 0 };
+    
+    // Calculate total errors across all sets
+    let totalErrors = 0;
     Object.values(opponentStats || {}).forEach(setStats => {
         opponentActions.forEach(actionName => {
-            totals[actionName] += (setStats && setStats[actionName]) ? setStats[actionName] : 0;
+            totalErrors += (setStats && setStats[actionName]) ? setStats[actionName] : 0;
         });
     });
 
+    // Calculate current set errors
     const currentSetStats = (opponentStats && opponentStats[currentSet]) ? opponentStats[currentSet] : {};
-    const shortLabels = { Serve: 'S', Atk: 'A', Oth: 'O' };
-    opponentCounts.textContent = opponentActions.map(actionName => {
-        const current = currentSetStats[actionName] || 0;
-        return `${shortLabels[actionName]} ${current}(${totals[actionName]})`;
-    }).join('  ');
+    let currentSetErrors = 0;
+    opponentActions.forEach(actionName => {
+        currentSetErrors += currentSetStats[actionName] || 0;
+    });
+    
+    opponentCounts.textContent = `-${currentSetErrors}(${totalErrors})`;
 
     opponentRow.appendChild(opponentCounts);
     list.appendChild(opponentRow);

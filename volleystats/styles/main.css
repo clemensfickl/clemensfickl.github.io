@@ -111,7 +111,7 @@ button, .btn {
 
 /* Action Select Buttons */
 .action-select-wrap {
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
@@ -133,7 +133,7 @@ button, .btn {
 .onfield-list {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem; /* Space between player rows */
+    gap: 0.3rem; /* Space between player rows */
 }
 
 .onfield-row {
@@ -144,7 +144,7 @@ button, .btn {
         "counts stats-controls   action-controls";
     align-items: center;
     gap: 0 0.5rem; /* No row gap, some column gap */
-    padding: 0.5rem;
+    padding: 0.35rem;
     border: 1px solid #ddd;
     border-radius: 0.5rem;
 }
@@ -159,14 +159,14 @@ button, .btn {
     grid-area: stats-controls;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 0.5rem;
+    gap: 0.3rem;
 }
 
 .action-controls {
     grid-area: action-controls;
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.15rem;
 }
 
 .big-btn {
@@ -192,7 +192,7 @@ button, .btn {
     grid-area: counts;
     font-family: monospace;
     font-size: 0.9rem;
-    margin-top: 0.25rem;
+    margin-top: 0.15rem;
 }
 
 .opponent-row {
@@ -303,7 +303,7 @@ footer {
 }
 
 main {
-    padding: 0.5rem;
+    padding: 0.35rem 0.5rem;
 }
 
 /* Statistics Table */
@@ -348,7 +348,7 @@ main {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     gap: 0.5rem;
     flex-wrap: wrap;
 }
@@ -356,6 +356,7 @@ main {
 .page-header h2 {
     margin: 0;
     flex: 1;
+    font-size: 1.3rem;
 }
 
 #set-selector-container {
