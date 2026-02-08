@@ -786,13 +786,23 @@ function renderActionTracker() {
     const list = document.createElement('div');
     list.className = 'onfield-list';
 
+    // Check if the designated libero is currently on the field
+    const liberoPlayer = players.find(pl => pl.isLibero);
+    const isLiberoOnField = liberoPlayer && liberoPlayer.position !== 'libero';
+
     onFieldPlayers.forEach(p => {
         const row = document.createElement('div');
         row.className = 'onfield-row';
 
         const name = document.createElement('div');
         name.className = 'onfield-name';
-        name.textContent = p.name;
+        // Check if someone else is in the libero position (meaning a libero swap occurred)
+        // and this player might be the libero who swapped in
+        const someoneInLiberoPosition = players.find(pl => pl.position === 'libero');
+        // If there's someone in libero position, check if this player has isLibero flag or was originally libero
+        const isLiberoSwappedIn = someoneInLiberoPosition && p.isLibero;
+        
+        name.textContent = isLiberoSwappedIn ? `${p.name} (L)` : p.name;
         row.appendChild(name);
 
         const controls = document.createElement('div');
@@ -831,24 +841,31 @@ function renderActionTracker() {
         const actionControls = document.createElement('div');
         actionControls.className = 'onfield-controls action-controls';
 
-        // small swap with libero button
-        const swapBtn = document.createElement('button');
-        swapBtn.className = 'btn btn-secondary swap-libero';
-        swapBtn.textContent = 'Libero';
-        swapBtn.addEventListener('click', () => {
-            swapWithLibero(p.id);
-            renderPlayers(getPlayers());
-            renderPositions();
-            renderActionTracker();
-        });
-        actionControls.appendChild(swapBtn);
-
-        // exchange button (open modal)
+        // Exchange button (open modal) - always shown first
         const exchangeBtn = document.createElement('button');
         exchangeBtn.className = 'btn btn-secondary exchange-btn';
-        exchangeBtn.textContent = 'Exch.';
+        exchangeBtn.textContent = 'Bench';
         exchangeBtn.addEventListener('click', () => openExchangeModal(p.id));
         actionControls.appendChild(exchangeBtn);
+
+        // Show libero swap button:
+        // - If libero is NOT on field: show for all players
+        // - If libero IS on field: only show for the libero themselves
+        const showLiberoButton = !isLiberoOnField || p.isLibero;
+        
+        if (showLiberoButton) {
+            const swapBtn = document.createElement('button');
+            swapBtn.className = 'btn btn-secondary swap-libero';
+            swapBtn.textContent = 'Libero';
+            swapBtn.addEventListener('click', () => {
+                swapWithLibero(p.id);
+                renderPlayers(getPlayers());
+                renderPositions();
+                renderActionTracker();
+            });
+            actionControls.appendChild(swapBtn);
+        }
+
         row.appendChild(actionControls);
 
         // show current counts for selected action
@@ -885,7 +902,7 @@ function renderActionTracker() {
 
     const opponentLabel = document.createElement('div');
     opponentLabel.className = 'onfield-name';
-    opponentLabel.textContent = 'Opponent';
+    opponentLabel.textContent = 'Opp Error';
     opponentRow.appendChild(opponentLabel);
 
     const opponentControls = document.createElement('div');
@@ -1002,25 +1019,30 @@ function openExchangeModal(fieldPlayerId) {
 
     const btnRow = document.createElement('div');
     btnRow.className = 'modal-buttons';
-    const ok = document.createElement('button');
-    ok.className = 'btn btn-primary';
-    ok.textContent = 'OK';
-    ok.addEventListener('click', () => {
-        const selected = select.value;
-        if (!selected) return;
-        exchangeWithBench(fieldPlayerId, selected);
-        document.body.removeChild(overlay);
-        renderPlayers(getPlayers());
-        renderPositions();
-        renderActionTracker();
-    });
+    
+    // Only show OK button if there are bench players available
+    if (benchPlayers.length > 0) {
+        const ok = document.createElement('button');
+        ok.className = 'btn btn-primary';
+        ok.textContent = 'OK';
+        ok.addEventListener('click', () => {
+            const selected = select.value;
+            if (!selected) return;
+            exchangeWithBench(fieldPlayerId, selected);
+            document.body.removeChild(overlay);
+            renderPlayers(getPlayers());
+            renderPositions();
+            renderActionTracker();
+        });
+        btnRow.appendChild(ok);
+    }
+    
     const cancel = document.createElement('button');
     cancel.className = 'btn';
     cancel.textContent = 'Cancel';
     cancel.addEventListener('click', () => {
         document.body.removeChild(overlay);
     });
-    btnRow.appendChild(ok);
     btnRow.appendChild(cancel);
     modal.appendChild(btnRow);
 

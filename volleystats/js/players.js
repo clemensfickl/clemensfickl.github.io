@@ -56,12 +56,21 @@ export function assignPosition(id, position) {
         players.forEach(p => {
             if (p.position === position && p.id !== id) {
                 p.position = null;
+                // If someone else had the libero position, remove their libero flag
+                if (position === 'libero') {
+                    p.isLibero = false;
+                }
             }
         });
         player.position = position;
+        // Mark as libero if assigning to libero position
+        if (position === 'libero') {
+            player.isLibero = true;
+        }
     } else {
         // unassign
         player.position = null;
+        // Don't remove isLibero flag on unassign - they're still the designated libero
     }
     savePlayers();
 }
