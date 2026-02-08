@@ -306,6 +306,13 @@ main {
     padding: 0.35rem 0.5rem;
 }
 
+/* Section Headers */
+section h2 {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 1.3rem;
+}
+
 /* Statistics Table */
 #stats-display {
     overflow-x: auto; /* Allow horizontal scrolling on small screens */
@@ -314,7 +321,7 @@ main {
 .stats-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 1rem;
+    margin-top: 0.5rem;
     font-size: 0.9rem;
 }
 
@@ -342,6 +349,58 @@ main {
     font-weight: normal;
     font-size: 0.8rem;
 }
+
+/* Set rows should not be bold */
+.stats-table .set-row {
+    font-weight: normal;
+}
+
+.stats-table .set-row .player-name-col {
+    font-weight: normal;
+}
+
+/* Positive and negative statistics colors */
+.stats-table .stat-positive {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.stats-table .stat-negative {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+/* Opponent error rows styling */
+.stats-table .opponent-total-row {
+    background-color: #fff3f3;
+    border-top: 2px solid #dc3545 !important;
+}
+
+.stats-table .opponent-total-row td:first-child {
+    border-left: 2px solid #dc3545;
+}
+
+.stats-table .opponent-total-row td:last-child {
+    border-right: 2px solid #dc3545;
+}
+
+.stats-table .opponent-set-row {
+    background-color: #fff9f9;
+}
+
+.stats-table .opponent-set-row td:first-child {
+    border-left: 2px solid #dc3545;
+}
+
+.stats-table .opponent-set-row td:last-child {
+    border-right: 2px solid #dc3545;
+}
+
+.stats-table .opponent-set-row:last-child {
+    border-bottom: 2px solid #dc3545 !important;
+}
+
+
 
 /* New styles for actions page header */
 .page-header {
@@ -377,7 +436,7 @@ main {
 .stats-actions {
     display: flex;
     gap: 0.5rem;
-    margin-top: 1rem;
+    margin-top: 0.5rem;
     flex-wrap: wrap;
 }
 

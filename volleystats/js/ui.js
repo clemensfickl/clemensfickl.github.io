@@ -73,15 +73,15 @@ function updateStatsDisplay(playerStats) {
     playerHeader.textContent = 'Player';
     headerRow1.appendChild(playerHeader);
 
-    const pointsHeader = document.createElement('th');
-    pointsHeader.rowSpan = 2;
-    pointsHeader.textContent = '+';
-    headerRow1.appendChild(pointsHeader);
+    const winnersHeader = document.createElement('th');
+    winnersHeader.rowSpan = 2;
+    winnersHeader.textContent = '+';
+    headerRow1.appendChild(winnersHeader);
 
-    const mistakesHeader = document.createElement('th');
-    mistakesHeader.rowSpan = 2;
-    mistakesHeader.textContent = '-';
-    headerRow1.appendChild(mistakesHeader);
+    const errorsHeader = document.createElement('th');
+    errorsHeader.rowSpan = 2;
+    errorsHeader.textContent = '-';
+    headerRow1.appendChild(errorsHeader);
 
     actionNames.forEach(name => {
         const th = document.createElement('th');
@@ -108,8 +108,8 @@ function updateStatsDisplay(playerStats) {
         
         // Calculate totals across all sets
         let totalsByAction = {};
-        let grandTotalPoints = 0;
-        let grandTotalMistakes = 0;
+        let grandTotalWinners = 0;
+        let grandTotalErrors = 0;
         
         actionKeys.forEach(key => {
             const actionName = ACTIONS_MAP[key];
@@ -130,17 +130,17 @@ function updateStatsDisplay(playerStats) {
             });
         }
 
-        // Calculate grand totals for points and mistakes
+        // Calculate grand totals for winners and errors
         actionKeys.forEach(key => {
             const actionName = ACTIONS_MAP[key];
             if (actionName === 'Serve' || actionName === 'Atk' || actionName === 'Blk') {
-                grandTotalPoints += totalsByAction[actionName].positive;
+                grandTotalWinners += totalsByAction[actionName].positive;
             }
-            grandTotalMistakes += totalsByAction[actionName].negative;
+            grandTotalErrors += totalsByAction[actionName].negative;
         });
 
         // Only show player if they have any stats
-        const hasStats = grandTotalPoints > 0 || grandTotalMistakes > 0 || 
+        const hasStats = grandTotalWinners > 0 || grandTotalErrors > 0 || 
             Object.values(totalsByAction).some(stats => stats.neutral > 0);
 
         if (hasStats) {
@@ -153,19 +153,22 @@ function updateStatsDisplay(playerStats) {
             nameCell.textContent = p.name;
             totalRow.appendChild(nameCell);
 
-            const pointsCell = document.createElement('td');
-            pointsCell.textContent = grandTotalPoints || '';
-            totalRow.appendChild(pointsCell);
+            const winnersCell = document.createElement('td');
+            winnersCell.className = 'stat-positive';
+            winnersCell.textContent = grandTotalWinners || '';
+            totalRow.appendChild(winnersCell);
 
-            const mistakesCell = document.createElement('td');
-            mistakesCell.textContent = grandTotalMistakes || '';
-            totalRow.appendChild(mistakesCell);
+            const errorsCell = document.createElement('td');
+            errorsCell.className = 'stat-negative';
+            errorsCell.textContent = grandTotalErrors || '';
+            totalRow.appendChild(errorsCell);
 
             actionKeys.forEach(key => {
                 const actionName = ACTIONS_MAP[key];
                 const counts = totalsByAction[actionName];
                 
                 const posCell = document.createElement('td');
+                posCell.className = 'stat-positive';
                 posCell.textContent = counts.positive || '';
                 totalRow.appendChild(posCell);
 
@@ -174,6 +177,7 @@ function updateStatsDisplay(playerStats) {
                 totalRow.appendChild(neutCell);
 
                 const negCell = document.createElement('td');
+                negCell.className = 'stat-negative';
                 negCell.textContent = counts.negative || '';
                 totalRow.appendChild(negCell);
             });
@@ -185,8 +189,8 @@ function updateStatsDisplay(playerStats) {
                 Object.keys(pStats.sets).sort((a, b) => parseInt(a) - parseInt(b)).forEach(setNum => {
                     const setStats = pStats.sets[setNum];
                     
-                    let setPoints = 0;
-                    let setMistakes = 0;
+                    let setWinners = 0;
+                    let setErrors = 0;
                     let setHasStats = false;
 
                     actionKeys.forEach(key => {
@@ -198,13 +202,14 @@ function updateStatsDisplay(playerStats) {
                         }
                         
                         if (actionName === 'Serve' || actionName === 'Atk' || actionName === 'Blk') {
-                            setPoints += counts.positive;
+                            setWinners += counts.positive;
                         }
-                        setMistakes += counts.negative;
+                        setErrors += counts.negative;
                     });
 
                     if (setHasStats) {
                         const setRow = document.createElement('tr');
+                        setRow.className = 'set-row';
                         
                         const setNameCell = document.createElement('td');
                         setNameCell.className = 'player-name-col';
@@ -212,19 +217,22 @@ function updateStatsDisplay(playerStats) {
                         setNameCell.style.paddingLeft = '2rem';
                         setRow.appendChild(setNameCell);
 
-                        const setPointsCell = document.createElement('td');
-                        setPointsCell.textContent = setPoints || '';
-                        setRow.appendChild(setPointsCell);
+                        const setWinnersCell = document.createElement('td');
+                        setWinnersCell.className = 'stat-positive';
+                        setWinnersCell.textContent = setWinners || '';
+                        setRow.appendChild(setWinnersCell);
 
-                        const setMistakesCell = document.createElement('td');
-                        setMistakesCell.textContent = setMistakes || '';
-                        setRow.appendChild(setMistakesCell);
+                        const setErrorsCell = document.createElement('td');
+                        setErrorsCell.className = 'stat-negative';
+                        setErrorsCell.textContent = setErrors || '';
+                        setRow.appendChild(setErrorsCell);
 
                         actionKeys.forEach(key => {
                             const actionName = ACTIONS_MAP[key];
                             const counts = setStats[actionName] || { positive: 0, neutral: 0, negative: 0 };
                             
                             const posCell = document.createElement('td');
+                            posCell.className = 'stat-positive';
                             posCell.textContent = counts.positive || '';
                             setRow.appendChild(posCell);
 
@@ -233,6 +241,7 @@ function updateStatsDisplay(playerStats) {
                             setRow.appendChild(neutCell);
 
                             const negCell = document.createElement('td');
+                            negCell.className = 'stat-negative';
                             negCell.textContent = counts.negative || '';
                             setRow.appendChild(negCell);
                         });
@@ -243,6 +252,129 @@ function updateStatsDisplay(playerStats) {
             }
         }
     });
+
+    // Add opponent errors
+    const opponentStats = getOpponentErrors();
+    if (opponentStats && Object.keys(opponentStats).length > 0) {
+        // Calculate totals across all sets
+        let totalsByAction = {};
+        let grandTotalErrors = 0;
+        
+        actionKeys.forEach(key => {
+            const actionName = ACTIONS_MAP[key];
+            totalsByAction[actionName] = 0;
+        });
+
+        // Sum up all sets
+        Object.values(opponentStats).forEach(setStats => {
+            actionKeys.forEach(key => {
+                const actionName = ACTIONS_MAP[key];
+                if (setStats[actionName]) {
+                    totalsByAction[actionName] += setStats[actionName];
+                    grandTotalErrors += setStats[actionName];
+                }
+            });
+        });
+
+        // Only show if there are errors
+        if (grandTotalErrors > 0) {
+            // Add total row for opponent errors
+            const totalRow = document.createElement('tr');
+            totalRow.className = 'opponent-total-row';
+            totalRow.style.fontWeight = 'bold';
+            
+            const nameCell = document.createElement('td');
+            nameCell.className = 'player-name-col';
+            nameCell.textContent = 'Opponent';
+            totalRow.appendChild(nameCell);
+
+            const winnersCell = document.createElement('td');
+            winnersCell.textContent = '';
+            totalRow.appendChild(winnersCell);
+
+            const errorsCell = document.createElement('td');
+            errorsCell.className = 'stat-negative';
+            errorsCell.textContent = grandTotalErrors;
+            totalRow.appendChild(errorsCell);
+
+            actionKeys.forEach(key => {
+                const actionName = ACTIONS_MAP[key];
+                
+                const posCell = document.createElement('td');
+                posCell.textContent = '';
+                totalRow.appendChild(posCell);
+
+                const neutCell = document.createElement('td');
+                neutCell.textContent = '';
+                totalRow.appendChild(neutCell);
+
+                const negCell = document.createElement('td');
+                negCell.className = 'stat-negative';
+                negCell.textContent = totalsByAction[actionName] || '';
+                totalRow.appendChild(negCell);
+            });
+
+            tbody.appendChild(totalRow);
+
+            // Add individual set rows
+            Object.keys(opponentStats).sort((a, b) => parseInt(a) - parseInt(b)).forEach(setNum => {
+                const setStats = opponentStats[setNum];
+                
+                let setErrors = 0;
+                let setHasStats = false;
+
+                actionKeys.forEach(key => {
+                    const actionName = ACTIONS_MAP[key];
+                    const count = setStats[actionName] || 0;
+                    
+                    if (count > 0) {
+                        setHasStats = true;
+                        setErrors += count;
+                    }
+                });
+
+                if (setHasStats) {
+                    const setRow = document.createElement('tr');
+                    setRow.className = 'opponent-set-row set-row';
+                    
+                    const setNameCell = document.createElement('td');
+                    setNameCell.className = 'player-name-col';
+                    setNameCell.textContent = `  Set ${setNum}`;
+                    setNameCell.style.paddingLeft = '2rem';
+                    setRow.appendChild(setNameCell);
+
+                    const setWinnersCell = document.createElement('td');
+                    setWinnersCell.textContent = '';
+                    setRow.appendChild(setWinnersCell);
+
+                    const setErrorsCell = document.createElement('td');
+                    setErrorsCell.className = 'stat-negative';
+                    setErrorsCell.textContent = setErrors;
+                    setRow.appendChild(setErrorsCell);
+
+                    actionKeys.forEach(key => {
+                        const actionName = ACTIONS_MAP[key];
+                        const count = setStats[actionName] || 0;
+                        
+                        const posCell = document.createElement('td');
+                        posCell.textContent = '';
+                        setRow.appendChild(posCell);
+
+                        const neutCell = document.createElement('td');
+                        neutCell.textContent = '';
+                        setRow.appendChild(neutCell);
+
+                        const negCell = document.createElement('td');
+                        negCell.className = 'stat-negative';
+                        negCell.textContent = count || '';
+                        setRow.appendChild(negCell);
+                    });
+
+                    tbody.appendChild(setRow);
+                }
+            });
+        }
+    }
 
     table.appendChild(tbody);
     disp.appendChild(table);
@@ -394,8 +526,8 @@ function handleHashChange() {
                     
                     // Calculate totals across all sets
                     let totalsByAction = {};
-                    let grandTotalPoints = 0;
-                    let grandTotalMistakes = 0;
+                    let grandTotalWinners = 0;
+                    let grandTotalErrors = 0;
                     
                     actionKeys.forEach(key => {
                         const actionName = ACTIONS_MAP[key];
@@ -420,12 +552,12 @@ function handleHashChange() {
                     actionKeys.forEach(key => {
                         const actionName = ACTIONS_MAP[key];
                         if (actionName === 'Serve' || actionName === 'Atk' || actionName === 'Blk') {
-                            grandTotalPoints += totalsByAction[actionName].positive;
+                            grandTotalWinners += totalsByAction[actionName].positive;
                         }
-                        grandTotalMistakes += totalsByAction[actionName].negative;
+                        grandTotalErrors += totalsByAction[actionName].negative;
                     });
 
-                    const hasStats = grandTotalPoints > 0 || grandTotalMistakes > 0 || 
+                    const hasStats = grandTotalWinners > 0 || grandTotalErrors > 0 || 
                         Object.values(totalsByAction).some(stats => stats.neutral > 0);
 
                     if (hasStats) {
@@ -433,15 +565,15 @@ function handleHashChange() {
                         const totalRow = {
                             id: p.id,
                             name: p.name,
-                            Points: grandTotalPoints,
-                            Mistakes: grandTotalMistakes
+                            Winners: grandTotalWinners || '',
+                            Errors: grandTotalErrors || ''
                         };
 
                         actionNames.forEach(an => {
                             const counts = totalsByAction[an];
-                            totalRow[`${an}_+`] = counts.positive;
-                            totalRow[`${an}_~`] = counts.neutral;
-                            totalRow[`${an}_-`] = counts.negative;
+                            totalRow[`${an}_+`] = counts.positive || '';
+                            totalRow[`${an}_~`] = counts.neutral || '';
+                            totalRow[`${an}_-`] = counts.negative || '';
                         });
 
                         rows.push(totalRow);
@@ -451,8 +583,8 @@ function handleHashChange() {
                             Object.keys(pStats.sets).sort((a, b) => parseInt(a) - parseInt(b)).forEach(setNum => {
                                 const setStats = pStats.sets[setNum];
                                 
-                                let setPoints = 0;
-                                let setMistakes = 0;
+                                let setWinners = 0;
+                                let setErrors = 0;
                                 let setHasStats = false;
 
                                 actionKeys.forEach(key => {
@@ -464,24 +596,24 @@ function handleHashChange() {
                                     }
                                     
                                     if (actionName === 'Serve' || actionName === 'Atk' || actionName === 'Blk') {
-                                        setPoints += counts.positive;
+                                        setWinners += counts.positive;
                                     }
-                                    setMistakes += counts.negative;
+                                    setErrors += counts.negative;
                                 });
 
                                 if (setHasStats) {
                                     const setRow = {
                                         id: p.id,
                                         name: `${p.name} Set ${setNum}`,
-                                        Points: setPoints,
-                                        Mistakes: setMistakes
+                                        Winners: setWinners || '',
+                                        Errors: setErrors || ''
                                     };
 
                                     actionNames.forEach(an => {
                                         const counts = setStats[an] || { positive: 0, neutral: 0, negative: 0 };
-                                        setRow[`${an}_+`] = counts.positive;
-                                        setRow[`${an}_~`] = counts.neutral;
-                                        setRow[`${an}_-`] = counts.negative;
+                                        setRow[`${an}_+`] = counts.positive || '';
+                                        setRow[`${an}_~`] = counts.neutral || '';
+                                        setRow[`${an}_-`] = counts.negative || '';
                                     });
 
                                     rows.push(setRow);
@@ -490,6 +622,85 @@ function handleHashChange() {
                         }
                     }
                 });
+
+                // Add opponent errors
+                const opponentStats = getOpponentErrors();
+                if (opponentStats && Object.keys(opponentStats).length > 0) {
+                    // Calculate totals across all sets
+                    let totalsByAction = {};
+                    let grandTotalErrors = 0;
+                    
+                    actionKeys.forEach(key => {
+                        const actionName = ACTIONS_MAP[key];
+                        totalsByAction[actionName] = 0;
+                    });
+
+                    // Sum up all sets
+                    Object.values(opponentStats).forEach(setStats => {
+                        actionKeys.forEach(key => {
+                            const actionName = ACTIONS_MAP[key];
+                            if (setStats[actionName]) {
+                                totalsByAction[actionName] += setStats[actionName];
+                                grandTotalErrors += setStats[actionName];
+                            }
+                        });
+                    });
+
+                    // Only add if there are errors
+                    if (grandTotalErrors > 0) {
+                        // Add total row
+                        const totalRow = {
+                            id: 'opponent',
+                            name: 'Opponent',
+                            Winners: '',
+                            Errors: grandTotalErrors
+                        };
+
+                        actionNames.forEach(an => {
+                            totalRow[`${an}_+`] = '';
+                            totalRow[`${an}_~`] = '';
+                            totalRow[`${an}_-`] = totalsByAction[an] || '';
+                        });
+
+                        rows.push(totalRow);
+
+                        // Add individual set rows
+                        Object.keys(opponentStats).sort((a, b) => parseInt(a) - parseInt(b)).forEach(setNum => {
+                            const setStats = opponentStats[setNum];
+                            
+                            let setErrors = 0;
+                            let setHasStats = false;
+
+                            actionKeys.forEach(key => {
+                                const actionName = ACTIONS_MAP[key];
+                                const count = setStats[actionName] || 0;
+                                
+                                if (count > 0) {
+                                    setHasStats = true;
+                                    setErrors += count;
+                                }
+                            });
+
+                            if (setHasStats) {
+                                const setRow = {
+                                    id: 'opponent',
+                                    name: `Opponent Set ${setNum}`,
+                                    Winners: '',
+                                    Errors: setErrors
+                                };
+
+                                actionNames.forEach(an => {
+                                    const count = setStats[an] || 0;
+                                    setRow[`${an}_+`] = '';
+                                    setRow[`${an}_~`] = '';
+                                    setRow[`${an}_-`] = count || '';
+                                });
+
+                                rows.push(setRow);
+                            }
+                        });
+                    }
+                }
 
                 exportCSV(rows, 'volleyball-stats.csv');
             };
