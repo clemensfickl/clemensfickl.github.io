@@ -133,7 +133,7 @@ function updateStatsDisplay(playerStats) {
         // Calculate grand totals for points and mistakes
         actionKeys.forEach(key => {
             const actionName = ACTIONS_MAP[key];
-            if (actionName === 'Serve' || actionName === 'Attack' || actionName === 'Block') {
+            if (actionName === 'Serve' || actionName === 'Atk' || actionName === 'Blk') {
                 grandTotalPoints += totalsByAction[actionName].positive;
             }
             grandTotalMistakes += totalsByAction[actionName].negative;
@@ -197,7 +197,7 @@ function updateStatsDisplay(playerStats) {
                             setHasStats = true;
                         }
                         
-                        if (actionName === 'Serve' || actionName === 'Attack' || actionName === 'Block') {
+                        if (actionName === 'Serve' || actionName === 'Atk' || actionName === 'Blk') {
                             setPoints += counts.positive;
                         }
                         setMistakes += counts.negative;
@@ -419,7 +419,7 @@ function handleHashChange() {
                     // Calculate grand totals
                     actionKeys.forEach(key => {
                         const actionName = ACTIONS_MAP[key];
-                        if (actionName === 'Serve' || actionName === 'Attack' || actionName === 'Block') {
+                        if (actionName === 'Serve' || actionName === 'Atk' || actionName === 'Blk') {
                             grandTotalPoints += totalsByAction[actionName].positive;
                         }
                         grandTotalMistakes += totalsByAction[actionName].negative;
@@ -463,7 +463,7 @@ function handleHashChange() {
                                         setHasStats = true;
                                     }
                                     
-                                    if (actionName === 'Serve' || actionName === 'Attack' || actionName === 'Block') {
+                                    if (actionName === 'Serve' || actionName === 'Atk' || actionName === 'Blk') {
                                         setPoints += counts.positive;
                                     }
                                     setMistakes += counts.negative;
@@ -597,7 +597,7 @@ function renderActionTracker() {
 
                 // If service or receive, auto-switch to attack
                 if ((actionToRecord === 'Serve' && outcome === 'neutral') || (actionToRecord === 'Recv' && ['positive', 'neutral'].includes(outcome))) {
-                    selectedAction = 'Attack';
+                    selectedAction = 'Atk';
                 } else if (outcome === 'positive') {
                     selectedAction = 'Serve';
                 } else if (outcome === 'negative') {

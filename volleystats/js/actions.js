@@ -3,9 +3,9 @@
 const actions = {
     SERVICE: 'Serve',
     RECEIVE: 'Recv',
-    ATTACK: 'Attack',
-    BLOCK: 'Block',
-    OTHER: 'Other'
+    ATTACK: 'Atk',
+    BLOCK: 'Blk',
+    OTHER: 'Oth'
 };
 
 let playerStatistics = {}; // { [playerId]: { sets: { [setNumber]: { [actionName]: ... } } } }
@@ -17,14 +17,6 @@ function getPlayerStatistics() {
     if (stats) {
         playerStatistics = JSON.parse(stats);
     }
-    // Ensure the structure is what we expect, migrate if necessary
-    Object.keys(playerStatistics).forEach(playerId => {
-        if (!playerStatistics[playerId].sets) {
-            // Old format detected, migrate it.
-            const oldStats = playerStatistics[playerId];
-            playerStatistics[playerId] = { sets: { 1: oldStats } };
-        }
-    });
     return playerStatistics;
 }
 
