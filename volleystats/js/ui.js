@@ -133,7 +133,7 @@ function updateStatsDisplay(playerStats) {
         // Calculate grand totals for winners and errors
         actionKeys.forEach(key => {
             const actionName = ACTIONS_MAP[key];
-            if (actionName === 'Serve' || actionName === 'Atk' || actionName === 'Blk') {
+            if (actionName === 'Serv' || actionName === 'Atk' || actionName === 'Blk') {
                 grandTotalWinners += totalsByAction[actionName].positive;
             }
             grandTotalErrors += totalsByAction[actionName].negative;
@@ -201,7 +201,7 @@ function updateStatsDisplay(playerStats) {
                             setHasStats = true;
                         }
                         
-                        if (actionName === 'Serve' || actionName === 'Atk' || actionName === 'Blk') {
+                        if (actionName === 'Serv' || actionName === 'Atk' || actionName === 'Blk') {
                             setWinners += counts.positive;
                         }
                         setErrors += counts.negative;
@@ -451,12 +451,15 @@ function renderPositions() {
         noneOpt.textContent = '-- None --';
         select.appendChild(noneOpt);
 
+        // Only show players without a position, or the player currently assigned to this position
         players.forEach(p => {
-            const opt = document.createElement('option');
-            opt.value = String(p.id);
-            opt.textContent = p.name;
-            if (p.position === pos.key) opt.selected = true;
-            select.appendChild(opt);
+            if (!p.position || p.position === pos.key) {
+                const opt = document.createElement('option');
+                opt.value = String(p.id);
+                opt.textContent = p.name;
+                if (p.position === pos.key) opt.selected = true;
+                select.appendChild(opt);
+            }
         });
 
         select.addEventListener('change', () => {
@@ -551,7 +554,7 @@ function handleHashChange() {
                     // Calculate grand totals
                     actionKeys.forEach(key => {
                         const actionName = ACTIONS_MAP[key];
-                        if (actionName === 'Serve' || actionName === 'Atk' || actionName === 'Blk') {
+                        if (actionName === 'Serv' || actionName === 'Atk' || actionName === 'Blk') {
                             grandTotalWinners += totalsByAction[actionName].positive;
                         }
                         grandTotalErrors += totalsByAction[actionName].negative;
@@ -595,7 +598,7 @@ function handleHashChange() {
                                         setHasStats = true;
                                     }
                                     
-                                    if (actionName === 'Serve' || actionName === 'Atk' || actionName === 'Blk') {
+                                    if (actionName === 'Serv' || actionName === 'Atk' || actionName === 'Blk') {
                                         setWinners += counts.positive;
                                     }
                                     setErrors += counts.negative;
@@ -808,10 +811,10 @@ function renderActionTracker() {
                 recordPlayerAction(p.id, actionToRecord, outcome);
 
                 // If service or receive, auto-switch to attack
-                if ((actionToRecord === 'Serve' && outcome === 'neutral') || (actionToRecord === 'Recv' && ['positive', 'neutral'].includes(outcome))) {
+                if ((actionToRecord === 'Serv' && outcome === 'neutral') || (actionToRecord === 'Recv' && ['positive', 'neutral'].includes(outcome))) {
                     selectedAction = 'Atk';
                 } else if (outcome === 'positive') {
-                    selectedAction = 'Serve';
+                    selectedAction = 'Serv';
                 } else if (outcome === 'negative') {
                     selectedAction = 'Recv';
                 }
@@ -882,20 +885,20 @@ function renderActionTracker() {
 
     const opponentLabel = document.createElement('div');
     opponentLabel.className = 'onfield-name';
-    opponentLabel.textContent = 'Opp Err';
+    opponentLabel.textContent = 'Opponent';
     opponentRow.appendChild(opponentLabel);
 
     const opponentControls = document.createElement('div');
     opponentControls.className = 'onfield-controls stats-controls opponent-controls';
 
-    const opponentActions = ['Serve', 'Atk', 'Oth'];
+    const opponentActions = ['Serv', 'Atk', 'Oth'];
     opponentActions.forEach(actionName => {
         const btn = document.createElement('button');
         btn.className = 'btn btn-danger opponent-action-btn';
         btn.textContent = actionName;
         btn.addEventListener('click', () => {
             recordOpponentError(actionName);
-            selectedAction = 'Serve';
+            selectedAction = 'Serv';
             updateStatsDisplay(getPlayerStatistics() || {});
             renderActionTracker();
         });

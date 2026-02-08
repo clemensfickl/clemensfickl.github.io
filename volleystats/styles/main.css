@@ -191,7 +191,7 @@ button, .btn {
 .player-counts {
     grid-area: counts;
     font-family: monospace;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     margin-top: 0.15rem;
 }
 
