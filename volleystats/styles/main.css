@@ -377,32 +377,11 @@ section h2 {
 
 /* Opponent error rows styling */
 .stats-table .opponent-total-row {
-    background-color: #fff3f3;
-    border-top: 2px solid #dc3545 !important;
-}
-
-.stats-table .opponent-total-row td:first-child {
-    border-left: 2px solid #dc3545;
-}
-
-.stats-table .opponent-total-row td:last-child {
-    border-right: 2px solid #dc3545;
+    background-color: #ffe6e6;
 }
 
 .stats-table .opponent-set-row {
-    background-color: #fff9f9;
-}
-
-.stats-table .opponent-set-row td:first-child {
-    border-left: 2px solid #dc3545;
-}
-
-.stats-table .opponent-set-row td:last-child {
-    border-right: 2px solid #dc3545;
-}
-
-.stats-table .opponent-set-row:last-child {
-    border-bottom: 2px solid #dc3545 !important;
+    background-color: #fff0f0;
 }
 
 
