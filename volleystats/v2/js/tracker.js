@@ -36,10 +36,18 @@ export function resetSetupPrompts() {
     promptedSets.clear();
 }
 
+// Only the receiving team can record a reception and only the serving team a serve.
+function blockedActions(serving) {
+    if (serving === 'us') return { us: ['Recv'], them: ['Serv'] };
+    if (serving === 'them') return { us: ['Serv'], them: ['Recv'] };
+    return { us: [], them: [] };
+}
+
 export function renderTracker() {
     const set = getCurrentSet();
     const state = replaySet(set);
-    if (!selectedAction && state.serving) selectedAction = actionForServe(state);
+    const blocked = blockedActions(state.serving);
+    if ((!selectedAction || blocked.us.includes(selectedAction)) && state.serving) selectedAction = actionForServe(state);
 
     renderToolbar(set);
 
@@ -49,7 +57,7 @@ export function renderTracker() {
 
     const container = document.getElementById('action-buttons');
     container.innerHTML = '';
-    container.appendChild(renderActionSelect());
+    container.appendChild(renderActionSelect(blocked.us));
     if (!state.hasSetup) container.appendChild(renderSetupBanner(set));
 
     const list = el('div', 'onfield-list');
@@ -69,7 +77,7 @@ export function renderTracker() {
     } else {
         players.forEach(({ player, pos, active }) => list.appendChild(renderPlayerRow(player, pos, active, setAgg, totalAgg)));
     }
-    list.appendChild(renderOpponentRow(setAgg, totalAgg));
+    list.appendChild(renderOpponentRow(setAgg, totalAgg, blocked.them));
     container.appendChild(list);
 
     if (!state.hasSetup && !promptedSets.has(set)) {
@@ -119,14 +127,16 @@ function renderSetupBanner(set) {
     return banner;
 }
 
-function renderActionSelect() {
+function renderActionSelect(blocked) {
     const wrap = el('div', 'action-select-wrap');
     ACTIONS.forEach(action => {
         const className = 'action-select-btn' + (selectedAction === action ? ' active' : '');
-        wrap.appendChild(button(action, className, () => {
+        const btn = button(action, className, () => {
             selectedAction = action;
             notifyChange();
-        }));
+        });
+        btn.disabled = blocked.includes(action);
+        wrap.appendChild(btn);
     });
     return wrap;
 }
@@ -195,16 +205,21 @@ function renderPlayerRow(player, pos, active, setAgg, totalAgg) {
 }
 
 // Same meaning as for our players: + is a point won by the opponent, - an opponent error.
-function renderOpponentRow(setAgg, totalAgg) {
+function renderOpponentRow(setAgg, totalAgg, blocked) {
     const row = el('div', 'opponent-row');
     row.appendChild(el('div', 'onfield-name', getTeamNames().opponent));
 
     const controls = el('div', 'opponent-controls');
     Object.entries(OPP_ACTIONS).forEach(([action, outcomes]) => {
-        const group = el('div', 'opp-group' + (outcomes.length === 1 ? ' single' : ''));
+        const disabled = blocked.includes(action);
+        let className = 'opp-group';
+        if (outcomes.length === 1) className += ' single';
+        if (disabled) className += ' disabled';
+        const group = el('div', className);
         group.appendChild(el('span', 'opp-group-label', action));
         if (outcomes.includes('positive')) group.appendChild(opponentButton('+', 'positive', () => recordOppPoint(action)));
         if (outcomes.includes('negative')) group.appendChild(opponentButton('-', 'negative', () => recordOppError(action)));
+        group.querySelectorAll('button').forEach(btn => { btn.disabled = disabled; });
         controls.appendChild(group);
     });
     row.appendChild(controls);
