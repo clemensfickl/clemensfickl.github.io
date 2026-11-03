@@ -16,12 +16,12 @@ export function openSetupModal(set, onSaved = () => {}) {
         const setterPicker = el('div', 'segmented setter-picker');
         modal.appendChild(setterPicker);
 
-        const board = el('div');
-        modal.appendChild(board);
-
         modal.appendChild(el('p', 'modal-label', 'First serve'));
         const serveToggle = el('div', 'segmented');
         modal.appendChild(serveToggle);
+
+        const board = el('div');
+        modal.appendChild(board);
 
         const render = () => {
             setterPicker.innerHTML = '';
