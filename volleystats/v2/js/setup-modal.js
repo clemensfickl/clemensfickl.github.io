@@ -6,8 +6,9 @@ import { openModal } from './modal.js';
 
 export function openSetupModal(set, onSaved = () => {}) {
     const existing = getSetSetup(set);
-    let setterStart = existing ? existing.setterStart : 1;
     let weServeFirst = existing ? existing.weServeFirst : defaultFirstServe(set);
+    let setterStart = existing ? existing.setterStart : defaultSetterStart(weServeFirst);
+    let setterChosen = !!existing;
     const names = getTeamNames();
 
     openModal(`Set ${set}: Lineup`, (modal, close) => {
@@ -28,6 +29,7 @@ export function openSetupModal(set, onSaved = () => {}) {
             for (let pos = 1; pos <= 6; pos++) {
                 setterPicker.appendChild(button(pos, 'segmented-btn' + (pos === setterStart ? ' active' : ''), () => {
                     setterStart = pos;
+                    setterChosen = true;
                     render();
                 }));
             }
@@ -37,6 +39,7 @@ export function openSetupModal(set, onSaved = () => {}) {
             [[true, names.team], [false, names.opponent]].forEach(([value, label]) => {
                 serveToggle.appendChild(button(label, 'segmented-btn' + (weServeFirst === value ? ' active' : ''), () => {
                     weServeFirst = value;
+                    if (!setterChosen) setterStart = defaultSetterStart(value);
                     render();
                 }));
             });
@@ -53,6 +56,11 @@ export function openSetupModal(set, onSaved = () => {}) {
         }));
         modal.appendChild(btnRow);
     });
+}
+
+// Most teams start with the setter serving, or on position 2 when receiving.
+function defaultSetterStart(weServeFirst) {
+    return weServeFirst ? 1 : 2;
 }
 
 // The first serve alternates between sets; set 5 starts with a new coin toss.
