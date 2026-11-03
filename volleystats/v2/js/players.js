@@ -1,5 +1,5 @@
 // Player roster: registration, role assignment, libero swaps and substitutions.
-import { load, save } from './storage.js';
+import { load, save, readV1 } from './storage.js';
 
 export const ROLES = [
     { key: 'setter', label: 'Setter' },
@@ -32,6 +32,29 @@ export function addPlayer(name) {
     players.push(player);
     savePlayers();
     return player;
+}
+
+function v1Players() {
+    const stored = readV1('players');
+    return Array.isArray(stored) ? stored.filter(p => p && p.name) : [];
+}
+
+export function countImportableV1Players() {
+    return v1Players().length;
+}
+
+// v1 stores the role as `position`; role keys are identical in both versions.
+export function importV1Players() {
+    const roleKeys = ROLES.map(r => r.key);
+    v1Players().forEach(p => {
+        players.push({
+            id: uuidv4(),
+            name: p.name,
+            role: roleKeys.includes(p.position) ? p.position : null,
+            isLibero: !!p.isLibero
+        });
+    });
+    savePlayers();
 }
 
 // crypto.randomUUID is only available in secure contexts, so build a v4 UUID by hand.

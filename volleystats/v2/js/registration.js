@@ -1,5 +1,5 @@
 // Registration screen: team names, roster and role assignment.
-import { addPlayer, removePlayer, getPlayers, assignRole, ROLES } from './players.js';
+import { addPlayer, removePlayer, getPlayers, assignRole, ROLES, countImportableV1Players, importV1Players } from './players.js';
 import { getRawTeamNames, setTeamNames } from './match.js';
 import { renderScoreboard } from './scoreboard.js';
 import { el, button, notifyChange } from './dom.js';
@@ -37,7 +37,21 @@ export function renderRegistration() {
     renderRoles();
 }
 
+function renderImportOffer() {
+    const container = document.getElementById('v1-import');
+    container.innerHTML = '';
+    const count = countImportableV1Players();
+    if (getPlayers().length > 0 || count === 0) return;
+
+    container.appendChild(el('span', null, `Found ${count} players from VolleyStats v1 on this device.`));
+    container.appendChild(button('Import', 'btn btn-primary', () => {
+        importV1Players();
+        notifyChange();
+    }));
+}
+
 function renderPlayerList() {
+    renderImportOffer();
     const list = document.getElementById('player-list');
     list.innerHTML = '';
     getPlayers().forEach(player => {

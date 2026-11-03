@@ -19,3 +19,12 @@ export function save(key, value) {
 export function remove(key) {
     localStorage.removeItem(PREFIX + key);
 }
+
+// Read-only access to v1 data, which must never be modified from v2.
+export function readV1(key) {
+    try {
+        return JSON.parse(localStorage.getItem(key));
+    } catch {
+        return null;
+    }
+}
