@@ -2,10 +2,10 @@
 import { getPlayers, baseLineup, placePlayer, liberoSlot, ROLES } from './players.js';
 import { setAppliedLiberoTarget, courtPosition, ROLE_ORDER } from './match.js';
 import { el, notifyChange } from './dom.js';
+import { makeDraggable } from './drag.js';
 
 // Seen from our side of the net: front row on top.
 const COURT_LAYOUT = [4, 3, 2, 5, 6, 1];
-const DRAG_THRESHOLD = 6;
 
 const roleLabel = Object.fromEntries(ROLES.map(r => [r.key, r.short]));
 
@@ -76,65 +76,17 @@ export function renderLineupBoard(container, setterPos) {
     const chip = player => {
         const node = el('div', 'player-chip' + (player.id === selectedId ? ' selected' : ''), player.name);
         node.setAttribute('role', 'button');
-        let dragged = false;
-
         node.addEventListener('click', e => {
             e.stopPropagation();
-            if (dragged) return;
             if (!selectedId) selectedId = player.id;
             else if (selectedId === player.id) selectedId = null;
             else return place(selectedId, node.closest('.lineup-slot').dataset.role);
             render();
         });
-
-        node.addEventListener('dragstart', e => e.preventDefault());
-        node.addEventListener('pointerdown', down => {
-            if (down.button !== 0) return;
-            dragged = false;
-            let ghost = null;
-            let target = null;
-            node.setPointerCapture(down.pointerId);
-
-            const isDrag = e => Math.hypot(e.clientX - down.clientX, e.clientY - down.clientY) >= DRAG_THRESHOLD;
-            const slotAt = e => {
-                const under = document.elementFromPoint(e.clientX, e.clientY);
-                return under && container.contains(under) ? under.closest('.lineup-slot') : null;
-            };
-            const move = e => {
-                if (!ghost) {
-                    if (!isDrag(e)) return;
-                    dragged = true;
-                    ghost = node.cloneNode(true);
-                    ghost.classList.add('drag-ghost');
-                    document.body.appendChild(ghost);
-                    node.classList.add('dragging');
-                }
-                ghost.style.left = `${e.clientX}px`;
-                ghost.style.top = `${e.clientY}px`;
-                const next = slotAt(e);
-                if (next !== target) {
-                    if (target) target.classList.remove('drop-target');
-                    if (next) next.classList.add('drop-target');
-                    target = next;
-                }
-            };
-            const end = e => {
-                node.removeEventListener('pointermove', move);
-                node.removeEventListener('pointerup', end);
-                node.removeEventListener('pointercancel', end);
-                if (ghost) ghost.remove();
-                if (e.type !== 'pointerup' || !isDrag(e)) {
-                    if (ghost) render();
-                    return;
-                }
-                dragged = true;
-                const drop = slotAt(e);
-                if (drop) place(player.id, drop.dataset.role);
-                else render();
-            };
-            node.addEventListener('pointermove', move);
-            node.addEventListener('pointerup', end);
-            node.addEventListener('pointercancel', end);
+        makeDraggable(node, {
+            scope: container,
+            targetSelector: '.lineup-slot',
+            onDrop: drop => place(player.id, drop.dataset.role)
         });
         return node;
     };
