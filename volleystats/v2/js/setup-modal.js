@@ -7,18 +7,18 @@ import { openModal } from './modal.js';
 export function openSetupModal(set, onSaved = () => {}) {
     const existing = getSetSetup(set);
     let setterStart = existing ? existing.setterStart : 1;
-    let weServeFirst = existing ? existing.weServeFirst : true;
+    let weServeFirst = existing ? existing.weServeFirst : defaultFirstServe(set);
     const names = getTeamNames();
 
-    openModal(`Set ${set}: lineup`, (modal, close) => {
+    openModal(`Set ${set}: Lineup`, (modal, close) => {
         modal.classList.add('setup-modal');
-        modal.appendChild(el('p', 'modal-label', 'Setter starts on'));
-        const setterPicker = el('div', 'segmented setter-picker');
-        modal.appendChild(setterPicker);
-
         modal.appendChild(el('p', 'modal-label', 'First serve'));
         const serveToggle = el('div', 'segmented');
         modal.appendChild(serveToggle);
+
+        modal.appendChild(el('p', 'modal-label', 'Setter starts on'));
+        const setterPicker = el('div', 'segmented setter-picker');
+        modal.appendChild(setterPicker);
 
         const board = el('div');
         modal.appendChild(board);
@@ -53,4 +53,11 @@ export function openSetupModal(set, onSaved = () => {}) {
         }));
         modal.appendChild(btnRow);
     });
+}
+
+// The first serve alternates between sets; set 5 starts with a new coin toss.
+function defaultFirstServe(set) {
+    const first = getSetSetup(1);
+    if (!first || set === 1 || set === 5) return true;
+    return set % 2 === 1 ? first.weServeFirst : !first.weServeFirst;
 }
