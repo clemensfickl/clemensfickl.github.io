@@ -1,16 +1,19 @@
 // Actions screen: records player actions and opponent errors and points for the current set.
 import { ACTIONS, recordPlayerAction, recordOppError, recordOppPoint, getEvents, getCurrentSet, setCurrentSet, undoLastAction } from './actions.js';
-import { getPlayers, ROLES, swapWithLibero, exchangeWithBench } from './players.js';
+import { getPlayers, swapWithLibero, exchangeWithBench } from './players.js';
 import { aggregate, playerCounts, winnersErrors, sumOpp } from './stats.js';
+import { replaySet, pointWinner, courtPosition, ROLE_ORDER, FRONT_ROW } from './match.js';
+import { openSetupModal } from './setup-modal.js';
 import { el, button, notifyChange } from './dom.js';
 import { openModal } from './modal.js';
 
 const OUTCOME_SYMBOLS = { positive: '+', neutral: '~', negative: '-' };
 const OPP_ERROR_ACTIONS = ['Serv', 'Atk', 'Oth'];
 const OPP_POINT_ACTIONS = ['Serv', 'Atk', 'Blk', 'Oth'];
-const COURT_ROLES = ROLES.map(r => r.key).filter(k => k !== 'libero');
+const POSITION_FILTER = { Serv: [1], Blk: FRONT_ROW };
 
 let selectedAction = null;
+const promptedSets = new Set();
 
 export function initTracker() {
     document.getElementById('undo-btn').addEventListener('click', () => {
@@ -20,26 +23,69 @@ export function initTracker() {
 }
 
 export function renderTracker() {
-    renderSetSelector();
+    const set = getCurrentSet();
+    const state = replaySet(set);
+    if (!selectedAction && state.serving) selectedAction = actionForServe(state);
+
+    renderToolbar(set);
 
     const events = getEvents();
-    const setAgg = aggregate(events, getCurrentSet());
+    const setAgg = aggregate(events, set);
     const totalAgg = aggregate(events);
 
     const container = document.getElementById('action-buttons');
     container.innerHTML = '';
     container.appendChild(renderActionSelect());
+    if (!state.hasSetup) container.appendChild(renderSetupBanner(set));
 
     const list = el('div', 'onfield-list');
-    onFieldPlayers().forEach(p => list.appendChild(renderPlayerRow(p, setAgg, totalAgg)));
+    courtPlayers(state).forEach(({ player, pos }) => list.appendChild(renderPlayerRow(player, pos, setAgg, totalAgg)));
     list.appendChild(renderOpponentRows(setAgg, totalAgg));
     container.appendChild(list);
+
+    if (!state.hasSetup && !promptedSets.has(set)) {
+        promptedSets.add(set);
+        openSetup(set);
+    }
 }
 
-function onFieldPlayers() {
-    return getPlayers()
-        .filter(p => COURT_ROLES.includes(p.role))
-        .sort((a, b) => COURT_ROLES.indexOf(a.role) - COURT_ROLES.indexOf(b.role));
+// Ordered by court position once the rotation is known, otherwise by role.
+function courtPlayers(state) {
+    const onCourt = getPlayers().filter(p => ROLE_ORDER.includes(p.role));
+    if (!state.setterPos) {
+        return onCourt
+            .sort((a, b) => ROLE_ORDER.indexOf(a.role) - ROLE_ORDER.indexOf(b.role))
+            .map(player => ({ player, pos: null }));
+    }
+    const withPos = onCourt
+        .map(player => ({ player, pos: courtPosition(player.role, state.setterPos) }))
+        .sort((a, b) => a.pos - b.pos);
+    const allowed = POSITION_FILTER[selectedAction];
+    return allowed ? withPos.filter(({ pos }) => allowed.includes(pos)) : withPos;
+}
+
+function openSetup(set) {
+    openSetupModal(set, () => { selectedAction = null; });
+}
+
+function actionForServe(state) {
+    return state.serving === 'us' ? 'Serv' : 'Recv';
+}
+
+function selectNextAction(action, outcome) {
+    const events = getEvents();
+    if (pointWinner(events[events.length - 1])) {
+        selectedAction = actionForServe(replaySet(getCurrentSet()));
+    } else if (action === 'Serv' || action === 'Recv') {
+        selectedAction = 'Atk';
+    }
+}
+
+function renderSetupBanner(set) {
+    const banner = el('div', 'setup-banner');
+    banner.appendChild(el('span', null, `No starting rotation for set ${set} yet.`));
+    banner.appendChild(button('Set lineup', 'btn btn-primary', () => openSetup(set)));
+    return banner;
 }
 
 function renderActionSelect() {
@@ -54,27 +100,24 @@ function renderActionSelect() {
     return wrap;
 }
 
-function nextActionAfter(action, outcome) {
-    if ((action === 'Serv' && outcome === 'neutral') || (action === 'Recv' && outcome !== 'negative')) return 'Atk';
-    if (outcome === 'positive') return 'Serv';
-    if (outcome === 'negative') return 'Recv';
-    return action;
-}
-
-function renderPlayerRow(player, setAgg, totalAgg) {
+function renderPlayerRow(player, pos, setAgg, totalAgg) {
     const players = getPlayers();
     const libero = players.find(p => p.isLibero);
     const isLiberoOnField = libero && libero.role !== 'libero';
 
     const row = el('div', 'onfield-row');
-    row.appendChild(el('div', 'onfield-name', player.isLibero ? `${player.name} (L)` : player.name));
+    const name = el('div', 'onfield-name');
+    if (pos) name.appendChild(el('span', 'pos-badge' + (FRONT_ROW.includes(pos) ? ' front' : ''), pos));
+    name.appendChild(document.createTextNode(player.isLibero ? `${player.name} (L)` : player.name));
+    row.appendChild(name);
 
     const controls = el('div', 'onfield-controls stats-controls');
     Object.entries(OUTCOME_SYMBOLS).forEach(([outcome, symbol]) => {
         controls.appendChild(button(symbol, `big-btn ${outcome}`, () => {
             if (!selectedAction) return alert('Select an action first');
-            recordPlayerAction(player.id, selectedAction, outcome);
-            selectedAction = nextActionAfter(selectedAction, outcome);
+            const action = selectedAction;
+            recordPlayerAction(player.id, action, outcome);
+            selectNextAction(action, outcome);
             notifyChange();
         }));
     });
@@ -105,10 +148,7 @@ function renderOpponentRows(setAgg, totalAgg) {
         className: 'opp-error',
         actions: OPP_ERROR_ACTIONS,
         counts: `-${sumOpp(setAgg.oppErrors)}(${sumOpp(totalAgg.oppErrors)})`,
-        onTap: action => {
-            recordOppError(action);
-            selectedAction = 'Serv';
-        }
+        onTap: action => recordOppError(action)
     }));
     wrap.appendChild(renderOpponentRow({
         label: 'Opp point',
@@ -116,10 +156,7 @@ function renderOpponentRows(setAgg, totalAgg) {
         className: 'opp-point',
         actions: OPP_POINT_ACTIONS,
         counts: `+${sumOpp(setAgg.oppPoints)}(${sumOpp(totalAgg.oppPoints)})`,
-        onTap: action => {
-            recordOppPoint(action);
-            selectedAction = 'Recv';
-        }
+        onTap: action => recordOppPoint(action)
     }));
     return wrap;
 }
@@ -134,12 +171,19 @@ function renderOpponentRow({ label, hint, className, actions, counts, onTap }) {
     actions.forEach(action => {
         controls.appendChild(button(action, 'opponent-action-btn', () => {
             onTap(action);
+            selectedAction = actionForServe(replaySet(getCurrentSet()));
             notifyChange();
         }));
     });
     row.appendChild(controls);
     row.appendChild(el('div', 'player-counts', counts));
     return row;
+}
+
+function renderToolbar(set) {
+    renderSetSelector();
+    document.getElementById('set-selector-container')
+        .appendChild(button('Lineup', 'btn btn-secondary', () => openSetup(set)));
 }
 
 function renderSetSelector() {
@@ -159,6 +203,7 @@ function renderSetSelector() {
     }
     select.addEventListener('change', () => {
         setCurrentSet(select.value);
+        selectedAction = null;
         notifyChange();
     });
     container.appendChild(select);

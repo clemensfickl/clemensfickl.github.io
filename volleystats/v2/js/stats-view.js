@@ -2,7 +2,7 @@
 import { ACTIONS, getEvents, resetEvents } from './actions.js';
 import { getPlayers } from './players.js';
 import { aggregate, winnersErrors, sumOpp, setsWithEvents } from './stats.js';
-import { getTeamNames } from './match.js';
+import { getTeamNames, clearSetSetups } from './match.js';
 import { el, notifyChange } from './dom.js';
 import { exportCSV } from './export-csv.js';
 
@@ -17,6 +17,7 @@ export function initStats() {
     document.getElementById('reset-stats').addEventListener('click', () => {
         if (!confirm('Are you sure you want to reset all statistics? This cannot be undone!')) return;
         resetEvents();
+        clearSetSetups();
         statsFilter = 'total';
         notifyChange();
     });

@@ -11,12 +11,25 @@ export function renderScoreboard() {
 
     board.innerHTML = '';
     const row = el('div', 'sb-row');
-    row.appendChild(el('div', 'sb-name sb-us', names.team));
+    row.appendChild(teamName(names.team, 'sb-us', state.serving === 'us'));
     const score = el('div', 'sb-score');
     score.append(el('span', 'sb-points', state.us), el('span', 'sb-sep', ':'), el('span', 'sb-points', state.them));
     row.appendChild(score);
-    row.appendChild(el('div', 'sb-name sb-them', names.opponent));
+    row.appendChild(teamName(names.opponent, 'sb-them', state.serving === 'them'));
     board.appendChild(row);
 
-    board.appendChild(el('div', 'sb-meta', `Set ${set}`));
+    const meta = [`Set ${set}`];
+    if (state.setterPos) meta.push(`Rotation ${state.setterPos}`);
+    board.appendChild(el('div', 'sb-meta', meta.join(' · ')));
+}
+
+function teamName(name, className, serving) {
+    const node = el('div', `sb-name ${className}`);
+    node.appendChild(el('span', 'sb-name-text', name));
+    if (serving) {
+        const dot = el('span', 'sb-serve');
+        dot.title = 'Serving';
+        node.appendChild(dot);
+    }
+    return node;
 }
