@@ -4,6 +4,7 @@ import { initTracker, renderTracker } from './tracker.js';
 import { initStats, renderStats } from './stats-view.js';
 import { renderScoreboard } from './scoreboard.js';
 import { syncLibero } from './libero.js';
+import { setWakeLock } from './wake-lock.js';
 import { onChange } from './dom.js';
 
 const SCREENS = {
@@ -23,6 +24,7 @@ function render() {
         cfg.sections.forEach(id => { document.getElementById(id).hidden = name !== screen; });
         document.getElementById(`nav-${name}`).classList.toggle('active', name === screen);
     });
+    setWakeLock(screen === 'actions');
     syncLibero();
     renderScoreboard();
     SCREENS[screen].render();
