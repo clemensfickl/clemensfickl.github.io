@@ -67,7 +67,7 @@ function buildStatsTable(agg) {
         const th = cell('th', action, 'action-header');
         th.colSpan = 3;
         head1.appendChild(th);
-        ['+', '~', '-'].forEach(symbol => head2.appendChild(cell('th', symbol)));
+        ['+', '~', '-'].forEach(symbol => head2.appendChild(cell('th', symbol, symbol === '+' ? 'group-start' : null)));
     });
     thead.append(head1, head2);
     table.appendChild(thead);
@@ -82,7 +82,7 @@ function buildStatsTable(agg) {
         row.appendChild(cell('td', winners || '', 'stat-positive'));
         row.appendChild(cell('td', errors || '', 'stat-negative'));
         ACTIONS.forEach(action => {
-            row.appendChild(cell('td', counts[action].positive || '', 'stat-positive'));
+            row.appendChild(cell('td', counts[action].positive || '', 'stat-positive group-start'));
             row.appendChild(cell('td', counts[action].neutral || ''));
             row.appendChild(cell('td', counts[action].negative || '', 'stat-negative'));
         });
@@ -96,7 +96,7 @@ function buildStatsTable(agg) {
         row.appendChild(cell('td', ''));
         row.appendChild(cell('td', oppErrors, 'stat-negative'));
         ACTIONS.forEach(action => {
-            row.appendChild(cell('td', ''));
+            row.appendChild(cell('td', '', 'group-start'));
             row.appendChild(cell('td', ''));
             row.appendChild(cell('td', agg.oppErrors[action] || '', 'stat-negative'));
         });

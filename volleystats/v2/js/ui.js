@@ -5,7 +5,7 @@ import { initStats, renderStats } from './stats-view.js';
 import { onChange } from './dom.js';
 
 const SCREENS = {
-    registration: { sections: ['registration', 'position-assignment'], render: renderRegistration },
+    registration: { sections: ['registration', 'position-assignment', 'version-hint'], render: renderRegistration },
     actions: { sections: ['action-tracking'], render: renderTracker },
     statistics: { sections: ['statistics'], render: renderStats }
 };

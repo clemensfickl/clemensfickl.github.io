@@ -26,7 +26,7 @@ function renderPlayerList() {
     list.innerHTML = '';
     getPlayers().forEach(player => {
         const li = el('li', 'player-item');
-        li.appendChild(button('x', 'btn btn-danger delete-player', () => {
+        li.appendChild(button('×', 'delete-player', () => {
             removePlayer(player.id);
             notifyChange();
         }));
