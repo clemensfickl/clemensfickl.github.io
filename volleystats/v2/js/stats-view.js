@@ -1,18 +1,20 @@
-// Statistics screen: stats table with set filter, CSV export and reset.
+// Statistics screen: stats tables with set filter, CSV exports and reset.
 import { ACTIONS, getEvents, resetEvents } from './actions.js';
 import { getPlayers } from './players.js';
 import { aggregate, winnersErrors, sumOpp, setsWithEvents } from './stats.js';
 import { getTeamNames, clearSetSetups } from './match.js';
+import { buildRotationTable, buildPointLog, pointLogCsvRows } from './rally-view.js';
 import { el, notifyChange } from './dom.js';
 import { exportCSV } from './export-csv.js';
-
-const OUTCOMES = ['positive', 'neutral', 'negative'];
 
 let statsFilter = 'total';
 
 export function initStats() {
     document.getElementById('export-csv').addEventListener('click', () => {
         exportCSV(statsCsvRows(), 'volleyball-stats.csv');
+    });
+    document.getElementById('export-points-csv').addEventListener('click', () => {
+        exportCSV(pointLogCsvRows(), 'volleyball-point-log.csv');
     });
     document.getElementById('reset-stats').addEventListener('click', () => {
         if (!confirm('Are you sure you want to reset all statistics? This cannot be undone!')) return;
@@ -31,7 +33,30 @@ export function renderStats() {
     renderFilter(sets);
     const disp = document.getElementById('stats-display');
     disp.innerHTML = '';
-    disp.appendChild(buildStatsTable(aggregate(events, statsFilter)));
+    if (events.length === 0) {
+        disp.appendChild(el('p', 'empty-state', 'No actions recorded yet. Track a rally on the Actions screen to see statistics here.'));
+        return;
+    }
+
+    const filteredSets = statsFilter === 'total' ? sets : [Number(statsFilter)];
+    disp.appendChild(section('Players', buildStatsTable(aggregate(events, statsFilter)), 'table-card'));
+    const rotations = buildRotationTable(filteredSets);
+    if (rotations) {
+        disp.appendChild(section('Rotations', rotations, 'table-card',
+            'Rotation = setter position. Side-out: points won when receiving. Break: points won when serving.'));
+    }
+    const pointLog = buildPointLog(filteredSets);
+    if (pointLog) disp.appendChild(section('Point log', pointLog));
+}
+
+function section(title, content, cardClass = '', note = '') {
+    const wrap = el('section', 'stats-section');
+    wrap.appendChild(el('h3', null, title));
+    const card = el('div', `card ${cardClass}`.trim());
+    card.appendChild(content);
+    wrap.appendChild(card);
+    if (note) wrap.appendChild(el('p', 'stats-note', note));
+    return wrap;
 }
 
 function renderFilter(sets) {

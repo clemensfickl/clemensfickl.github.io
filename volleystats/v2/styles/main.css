@@ -787,7 +787,148 @@ select {
     background: var(--negative-soft);
 }
 
+.stats-section h3 {
+    margin: 0.9rem 0.25rem 0.4rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.stats-section .card {
+    margin-bottom: 0;
+}
+
+.stats-note {
+    margin: 0.35rem 0.25rem 0;
+    color: var(--muted);
+    font-size: 0.75rem;
+}
+
+.empty-state {
+    padding: 2rem 1rem;
+    color: var(--muted);
+    text-align: center;
+}
+
+.rotation-table td,
+.rotation-table th {
+    padding: 0.5rem;
+}
+
+.rate-cell {
+    font-weight: 600;
+}
+
+.rate-detail {
+    display: block;
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-weight: 400;
+}
+
+.point-log-set + .point-log-set {
+    margin-top: 0.6rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--border);
+}
+
+.point-log-set summary {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    font-weight: 600;
+    list-style: none;
+}
+
+.point-log-set summary::-webkit-details-marker {
+    display: none;
+}
+
+.point-log-set summary::before {
+    content: "";
+    width: 0.4rem;
+    height: 0.4rem;
+    border-right: 2px solid var(--muted);
+    border-bottom: 2px solid var(--muted);
+    transform: rotate(-45deg);
+    transition: transform 0.15s;
+}
+
+.point-log-set[open] summary::before {
+    transform: rotate(45deg);
+}
+
+.point-log-title {
+    flex: 1;
+}
+
+.point-log-score {
+    font-variant-numeric: tabular-nums;
+}
+
+.score-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin: 0.5rem 0;
+}
+
+.strip-point {
+    width: 9px;
+    height: 9px;
+    border-radius: 2px;
+}
+
+.strip-point.us { background: var(--positive); }
+.strip-point.them { background: var(--negative); }
+
+.point-list {
+    max-height: 320px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.85rem;
+}
+
+.point-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.3rem 0.25rem 0.3rem 0.5rem;
+    border-left: 3px solid transparent;
+}
+
+.point-item + .point-item {
+    border-top: 1px solid #f1f5f9;
+}
+
+.point-item.us { border-left-color: var(--positive); }
+.point-item.them { border-left-color: var(--negative); }
+
+.point-score {
+    min-width: 3.2rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.point-desc {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.point-rot {
+    color: var(--muted);
+    font-size: 0.75rem;
+}
+
 .stats-actions {
+    margin-top: 0.9rem;
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;

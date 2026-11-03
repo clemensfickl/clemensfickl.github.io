@@ -134,6 +134,28 @@ export function replaySet(set, events = getEvents()) {
     return state;
 }
 
+// Per rotation (setter position): points won and lost, split by whether we served the rally.
+export function rotationStats(sets, events = getEvents()) {
+    const rows = {};
+    for (let r = 1; r <= 6; r++) rows[r] = { won: 0, lost: 0, servRallies: 0, servWon: 0, recvRallies: 0, recvWon: 0 };
+
+    sets.forEach(set => replaySet(set, events).log.forEach(entry => {
+        if (!entry.setterPos) return;
+        const row = rows[entry.setterPos];
+        const won = entry.winner === 'us';
+        if (won) row.won++;
+        else row.lost++;
+        if (entry.servedBy === 'us') {
+            row.servRallies++;
+            if (won) row.servWon++;
+        } else if (entry.servedBy === 'them') {
+            row.recvRallies++;
+            if (won) row.recvWon++;
+        }
+    }));
+    return rows;
+}
+
 export function isSetOver(state, set) {
     const target = set === 5 ? 15 : 25;
     return Math.max(state.us, state.them) >= target && Math.abs(state.us - state.them) >= 2;
