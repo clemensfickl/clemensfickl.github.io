@@ -433,6 +433,129 @@ select {
     color: #b91c1c;
 }
 
+/* Court layout */
+.court-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    padding: 4px;
+    border-radius: 0 0 var(--radius) var(--radius);
+    background: #fed7aa;
+}
+
+.court-player-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    padding: 0.3rem;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    background: var(--surface);
+}
+
+.court-player-cell.libero {
+    background: #ecfdf5;
+}
+
+.court-player-cell.inactive {
+    background: #fff7ed;
+}
+
+.court-player-cell.inactive .cp-name,
+.court-player-cell.inactive .cp-role {
+    color: var(--muted);
+}
+
+.court-player-cell.inactive .cp-outcomes {
+    visibility: hidden;
+}
+
+.cp-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.2rem;
+    font-size: 0.62rem;
+    font-weight: 700;
+}
+
+.cp-role {
+    color: #c2410c;
+}
+
+.cp-role.cp-serve {
+    flex: none;
+    padding: 0 0.3rem;
+    border-radius: 999px;
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.cp-name {
+    overflow: hidden;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.15;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cp-counts {
+    overflow: hidden;
+    color: var(--muted);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cp-outcomes {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 3px;
+}
+
+.cp-btn {
+    height: 38px;
+    padding: 0;
+    border: none;
+    border-radius: 7px;
+    color: #fff;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.cp-btn.positive { background: var(--positive); }
+.cp-btn.neutral { background: var(--neutral); }
+.cp-btn.negative { background: var(--negative); }
+
+.cp-subs {
+    display: flex;
+    gap: 4px;
+    margin-top: auto;
+    padding-top: 5px;
+}
+
+.cp-subs > * {
+    flex: 1;
+    min-width: 0;
+}
+
+.cp-subs .libero-buttons {
+    gap: 4px;
+}
+
+.cp-subs .exchange-btn,
+.cp-subs .swap-libero {
+    height: 30px;
+    font-size: 0.8rem;
+}
+
+.cp-subs:empty {
+    display: none;
+}
+
 /* Scoreboard */
 .scoreboard {
     display: grid;
@@ -826,9 +949,14 @@ select {
     gap: 0.45rem 0.6rem;
 }
 
-.team-names label {
+.team-names label,
+.team-names .setting-label {
     color: var(--muted);
     font-size: 0.9rem;
+}
+
+.team-names .segmented-btn {
+    padding: 0.35rem 0;
 }
 
 .team-names input {

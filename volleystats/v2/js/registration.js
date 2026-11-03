@@ -3,6 +3,7 @@ import { addPlayer, removePlayer, getPlayers, countImportableV1Players, importV1
 import { getRawTeamNames, setTeamNames, getSetSetup } from './match.js';
 import { getCurrentSet } from './actions.js';
 import { renderLineupBoard } from './lineup-board.js';
+import { getActionsLayout, setActionsLayout } from './settings.js';
 import { renderScoreboard } from './scoreboard.js';
 import { el, button, notifyChange } from './dom.js';
 
@@ -35,8 +36,21 @@ export function renderRegistration() {
     const names = getRawTeamNames();
     if (document.activeElement !== teamInput()) teamInput().value = names.team;
     if (document.activeElement !== opponentInput()) opponentInput().value = names.opponent;
+    renderLayoutSetting();
     renderPlayerList();
     renderLineup();
+}
+
+function renderLayoutSetting() {
+    const container = document.getElementById('layout-setting');
+    container.innerHTML = '';
+    const current = getActionsLayout();
+    [['list', 'List'], ['court', 'Court']].forEach(([layout, label]) => {
+        container.appendChild(button(label, 'segmented-btn' + (layout === current ? ' active' : ''), () => {
+            setActionsLayout(layout);
+            notifyChange();
+        }));
+    });
 }
 
 function renderImportOffer() {
