@@ -352,65 +352,66 @@ select {
     font-weight: 600;
 }
 
-.opponent-rows {
-    display: flex;
-    flex-direction: column;
-    margin-top: 0.35rem;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-}
-
 .opponent-row {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
         "name   controls"
         "counts controls";
     align-items: center;
-    column-gap: 0.5rem;
-    padding: 0.45rem 0.5rem 0.45rem 0.75rem;
-}
-
-.opponent-row + .opponent-row {
-    border-top: 1px solid var(--border);
+    column-gap: 0.4rem;
+    margin-top: 0.2rem;
+    padding: 0.3rem 0.4rem 0.3rem 0.6rem;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: var(--radius);
 }
 
 .opponent-row .onfield-name {
-    font-size: 0.95rem;
-}
-
-.opp-hint {
-    display: block;
-    color: var(--muted);
-    font-size: 0.72rem;
-    font-weight: 500;
+    font-size: 0.9rem;
 }
 
 .opponent-controls {
     grid-area: controls;
     display: flex;
-    gap: 0.35rem;
+    gap: 0.25rem;
 }
 
-.opponent-action-btn {
-    min-width: 50px;
-    height: 42px;
-    padding: 0 0.5rem;
-    border: none;
-    border-radius: 10px;
-    font-size: 0.85rem;
+.opp-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    padding: 0 2px 2px;
+    border-radius: 8px;
+    background: #e2e8f0;
+}
+
+.opp-group-label {
+    grid-column: span 2;
+    color: #475569;
+    font-size: 0.62rem;
     font-weight: 700;
+    line-height: 1rem;
+    text-align: center;
+    text-transform: uppercase;
 }
 
-.opp-error .opponent-action-btn {
+.opp-btn {
+    width: 29px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.05rem;
+    font-weight: 800;
+}
+
+.opp-btn.positive {
     background: #dcfce7;
     color: #15803d;
 }
 
-.opp-point .opponent-action-btn {
+.opp-btn.negative {
     background: #fee2e2;
     color: #b91c1c;
 }

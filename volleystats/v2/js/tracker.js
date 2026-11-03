@@ -2,15 +2,14 @@
 import { ACTIONS, recordPlayerAction, recordOppError, recordOppPoint, getEvents, getCurrentSet, setCurrentSet, undoLastAction } from './actions.js';
 import { getPlayers, swapWithLibero, exchangeWithBench } from './players.js';
 import { aggregate, playerCounts, winnersErrors, sumOpp } from './stats.js';
-import { replaySet, pointWinner, courtPosition, ROLE_ORDER, FRONT_ROW } from './match.js';
+import { replaySet, pointWinner, courtPosition, getTeamNames, ROLE_ORDER, FRONT_ROW } from './match.js';
 import { openSetupModal } from './setup-modal.js';
 import { recordAndCheckSetEnd, openAdjustModal } from './set-flow.js';
 import { el, button, notifyChange } from './dom.js';
 import { openModal } from './modal.js';
 
 const OUTCOME_SYMBOLS = { positive: '+', neutral: '~', negative: '-' };
-const OPP_ERROR_ACTIONS = ['Serv', 'Atk', 'Oth'];
-const OPP_POINT_ACTIONS = ['Serv', 'Atk', 'Blk', 'Oth'];
+const OPP_ACTIONS = ['Serv', 'Atk', 'Blk', 'Oth'];
 const POSITION_FILTER = { Serv: [1], Blk: FRONT_ROW };
 
 let selectedAction = null;
@@ -46,7 +45,7 @@ export function renderTracker() {
 
     const list = el('div', 'onfield-list');
     courtPlayers(state).forEach(({ player, pos }) => list.appendChild(renderPlayerRow(player, pos, setAgg, totalAgg)));
-    list.appendChild(renderOpponentRows(setAgg, totalAgg));
+    list.appendChild(renderOpponentRow(setAgg, totalAgg));
     container.appendChild(list);
 
     if (!state.hasSetup && !promptedSets.has(set)) {
@@ -150,44 +149,33 @@ function renderPlayerRow(player, pos, setAgg, totalAgg) {
     return row;
 }
 
-function renderOpponentRows(setAgg, totalAgg) {
-    const wrap = el('div', 'opponent-rows');
-    wrap.appendChild(renderOpponentRow({
-        label: 'Opp error',
-        hint: 'our point',
-        className: 'opp-error',
-        actions: OPP_ERROR_ACTIONS,
-        counts: `-${sumOpp(setAgg.oppErrors)}(${sumOpp(totalAgg.oppErrors)})`,
-        onTap: action => recordOppError(action)
-    }));
-    wrap.appendChild(renderOpponentRow({
-        label: 'Opp point',
-        hint: 'their point',
-        className: 'opp-point',
-        actions: OPP_POINT_ACTIONS,
-        counts: `+${sumOpp(setAgg.oppPoints)}(${sumOpp(totalAgg.oppPoints)})`,
-        onTap: action => recordOppPoint(action)
-    }));
-    return wrap;
-}
-
-function renderOpponentRow({ label, hint, className, actions, counts, onTap }) {
-    const row = el('div', `opponent-row ${className}`);
-    const name = el('div', 'onfield-name', label);
-    name.appendChild(el('span', 'opp-hint', hint));
-    row.appendChild(name);
+// Same meaning as for our players: + is a point won by the opponent, - an opponent error.
+function renderOpponentRow(setAgg, totalAgg) {
+    const row = el('div', 'opponent-row');
+    row.appendChild(el('div', 'onfield-name', getTeamNames().opponent));
 
     const controls = el('div', 'opponent-controls');
-    actions.forEach(action => {
-        controls.appendChild(button(action, 'opponent-action-btn', () => {
-            recordAndCheckSetEnd(() => onTap(action), resetAction);
-            selectedAction = actionForServe(replaySet(getCurrentSet()));
-            notifyChange();
-        }));
+    OPP_ACTIONS.forEach(action => {
+        const group = el('div', 'opp-group');
+        group.appendChild(el('span', 'opp-group-label', action));
+        group.appendChild(opponentButton('+', 'positive', () => recordOppPoint(action)));
+        group.appendChild(opponentButton('-', 'negative', () => recordOppError(action)));
+        controls.appendChild(group);
     });
     row.appendChild(controls);
-    row.appendChild(el('div', 'player-counts', counts));
+
+    const points = `+${sumOpp(setAgg.oppPoints)}(${sumOpp(totalAgg.oppPoints)})`;
+    const errors = `-${sumOpp(setAgg.oppErrors)}(${sumOpp(totalAgg.oppErrors)})`;
+    row.appendChild(el('div', 'player-counts', `${points} ${errors}`));
     return row;
+}
+
+function opponentButton(symbol, outcome, recordFn) {
+    return button(symbol, `opp-btn ${outcome}`, () => {
+        recordAndCheckSetEnd(recordFn, resetAction);
+        selectedAction = actionForServe(replaySet(getCurrentSet()));
+        notifyChange();
+    });
 }
 
 function renderToolbar(set) {

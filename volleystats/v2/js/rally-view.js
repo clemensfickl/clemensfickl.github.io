@@ -50,9 +50,9 @@ function describe(entry, playersById, names) {
         case 'player':
             return `${playersById[e.playerId] || 'Unknown'} · ${e.action} ${OUTCOME_SYMBOLS[e.outcome]}`;
         case 'oppPoint':
-            return `${names.opponent} · ${e.action}`;
+            return `${names.opponent} · ${e.action} +`;
         case 'oppError':
-            return `${names.opponent} error · ${e.action}`;
+            return `${names.opponent} · ${e.action} -`;
         default:
             return 'Adjusted';
     }
