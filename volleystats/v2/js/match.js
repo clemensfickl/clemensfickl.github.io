@@ -43,6 +43,7 @@ export function setSetSetup(set, setup) {
 
 export function clearSetSetups() {
     config.sets = {};
+    config.liberoTarget = null;
     saveMatch();
 }
 
@@ -55,6 +56,27 @@ export function courtPosition(role, setterPos) {
     const index = ROLE_ORDER.indexOf(role);
     if (index === -1 || !setterPos) return null;
     return (setterPos - 1 + index) % 6 + 1;
+}
+
+const MIDDLES = ['middleBlocker1', 'middleBlocker2'];
+const BACK_ROW = [5, 6, 1];
+
+// The middle in the back row is replaced by the libero, except while serving from position 1.
+export function liberoTarget(state) {
+    return MIDDLES.find(role => {
+        const pos = courtPosition(role, state.setterPos);
+        return BACK_ROW.includes(pos) && !(pos === 1 && state.serving === 'us');
+    }) || null;
+}
+
+// Stored as "set:role" so a new set or a changed target re-applies, while manual swaps persist until then.
+export function getAppliedLiberoTarget() {
+    return config.liberoTarget || null;
+}
+
+export function setAppliedLiberoTarget(key) {
+    config.liberoTarget = key;
+    saveMatch();
 }
 
 // Returns 'us', 'them', or null if the event did not end a rally.

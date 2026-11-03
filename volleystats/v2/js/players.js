@@ -86,6 +86,27 @@ export function swapWithLibero(id) {
     savePlayers();
 }
 
+// Brings the libero back to the libero slot, then lets them replace whoever holds `role` (null: libero stays out).
+export function setLiberoCoverage(role) {
+    const libero = players.find(p => p.isLibero);
+    if (!libero || !libero.role) return;
+
+    if (libero.role !== 'libero') {
+        const replaced = players.find(p => p.role === 'libero');
+        if (!replaced) return;
+        replaced.role = libero.role;
+        libero.role = 'libero';
+    }
+    if (role) {
+        const covered = players.find(p => p.role === role);
+        if (covered) {
+            covered.role = 'libero';
+            libero.role = role;
+        }
+    }
+    savePlayers();
+}
+
 export function exchangeWithBench(fieldPlayerId, benchPlayerId) {
     const field = players.find(p => p.id === fieldPlayerId);
     const bench = players.find(p => p.id === benchPlayerId);

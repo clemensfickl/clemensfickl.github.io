@@ -3,6 +3,7 @@ import { initRegistration, renderRegistration } from './registration.js';
 import { initTracker, renderTracker } from './tracker.js';
 import { initStats, renderStats } from './stats-view.js';
 import { renderScoreboard } from './scoreboard.js';
+import { syncLibero } from './libero.js';
 import { onChange } from './dom.js';
 
 const SCREENS = {
@@ -22,6 +23,7 @@ function render() {
         cfg.sections.forEach(id => { document.getElementById(id).hidden = name !== screen; });
         document.getElementById(`nav-${name}`).classList.toggle('active', name === screen);
     });
+    syncLibero();
     renderScoreboard();
     SCREENS[screen].render();
 }
