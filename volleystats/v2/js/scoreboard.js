@@ -1,37 +1,43 @@
-// Scoreboard shown below the tabs on every screen.
-import { getCurrentSet } from './actions.js';
-import { replaySet, getTeamNames, getMatchScore } from './match.js';
+// Scoreboard shown below the tabs on every screen: one row per team with the points of every set.
+import { getCurrentSet, getEvents } from './actions.js';
+import { replaySet, getTeamNames, isSetOver } from './match.js';
+import { setsWithEvents } from './stats.js';
 import { el } from './dom.js';
 
 export function renderScoreboard() {
     const board = document.getElementById('scoreboard');
-    const set = getCurrentSet();
-    const state = replaySet(set);
+    const current = getCurrentSet();
+    const state = replaySet(current);
     const names = getTeamNames();
+    const lastSet = Math.max(current, ...setsWithEvents(getEvents()));
+    const sets = [];
+    for (let set = 1; set <= lastSet; set++) sets.push({ set, state: set === current ? state : replaySet(set) });
 
     board.innerHTML = '';
-    const row = el('div', 'sb-row');
-    row.appendChild(teamName(names.team, 'sb-us', state.serving === 'us'));
-    const score = el('div', 'sb-score');
-    score.append(el('span', 'sb-points', state.us), el('span', 'sb-sep', ':'), el('span', 'sb-points', state.them));
-    row.appendChild(score);
-    row.appendChild(teamName(names.opponent, 'sb-them', state.serving === 'them'));
-    board.appendChild(row);
+    board.style.setProperty('--sb-sets', sets.length);
+    board.appendChild(teamRow(names.team, 'us', state.serving === 'us', sets, current));
+    board.appendChild(teamRow(names.opponent, 'them', state.serving === 'them', sets, current));
 
-    const meta = [`Set ${set}`];
-    const sets = getMatchScore();
-    if (sets.us + sets.them > 0) meta.push(`Sets ${sets.us}–${sets.them}`);
-    if (state.setterPos) meta.push(`Rotation ${state.setterPos}`);
-    board.appendChild(el('div', 'sb-meta', meta.join(' · ')));
+    const meta = el('div', 'sb-meta');
+    meta.appendChild(el('span', null, `Set ${current}`));
+    if (state.setterPos) meta.appendChild(el('span', null, `Rot ${state.setterPos}`));
+    board.appendChild(meta);
 }
 
-function teamName(name, className, serving) {
-    const node = el('div', `sb-name ${className}`);
-    node.appendChild(el('span', 'sb-name-text', name));
-    if (serving) {
-        const dot = el('span', 'sb-serve');
-        dot.title = 'Serving';
-        node.appendChild(dot);
-    }
-    return node;
+function teamRow(name, side, serving, sets, current) {
+    const row = el('div', `sb-team sb-${side}`);
+    const nameCell = el('div', 'sb-name');
+    const dot = el('span', 'sb-serve' + (serving ? ' on' : ''));
+    if (serving) dot.title = 'Serving';
+    nameCell.append(dot, el('span', 'sb-name-text', name));
+    row.appendChild(nameCell);
+
+    sets.forEach(({ set, state }) => {
+        const other = side === 'us' ? 'them' : 'us';
+        let className = 'sb-set';
+        if (set === current) className += ' current';
+        if (isSetOver(state, set) && state[side] > state[other]) className += ' won';
+        row.appendChild(el('span', className, state[side]));
+    });
+    return row;
 }
