@@ -2,6 +2,7 @@
 import { ACTIONS, getEvents, resetEvents } from './actions.js';
 import { getPlayers } from './players.js';
 import { aggregate, winnersErrors, sumOpp, setsWithEvents } from './stats.js';
+import { getTeamNames } from './match.js';
 import { el, notifyChange } from './dom.js';
 import { exportCSV } from './export-csv.js';
 
@@ -89,14 +90,15 @@ function buildStatsTable(agg) {
         tbody.appendChild(row);
     });
 
+    const oppPoints = sumOpp(agg.oppPoints);
     const oppErrors = sumOpp(agg.oppErrors);
-    if (oppErrors > 0) {
+    if (oppPoints > 0 || oppErrors > 0) {
         const row = el('tr', 'opponent-total-row');
-        row.appendChild(cell('td', 'Opponent', 'player-name-col'));
-        row.appendChild(cell('td', ''));
-        row.appendChild(cell('td', oppErrors, 'stat-negative'));
+        row.appendChild(cell('td', getTeamNames().opponent, 'player-name-col'));
+        row.appendChild(cell('td', oppPoints || '', 'stat-positive'));
+        row.appendChild(cell('td', oppErrors || '', 'stat-negative'));
         ACTIONS.forEach(action => {
-            row.appendChild(cell('td', '', 'group-start'));
+            row.appendChild(cell('td', agg.oppPoints[action] || '', 'stat-positive group-start'));
             row.appendChild(cell('td', ''));
             row.appendChild(cell('td', agg.oppErrors[action] || '', 'stat-negative'));
         });
@@ -118,12 +120,16 @@ function playerCsvRow(id, name, counts) {
     return row;
 }
 
-function opponentCsvRow(name, oppErrors) {
-    const row = { id: 'opponent', name, Winners: '', Errors: sumOpp(oppErrors) };
+function hasOppStats(agg) {
+    return sumOpp(agg.oppPoints) > 0 || sumOpp(agg.oppErrors) > 0;
+}
+
+function opponentCsvRow(name, agg) {
+    const row = { id: 'opponent', name, Winners: sumOpp(agg.oppPoints) || '', Errors: sumOpp(agg.oppErrors) || '' };
     ACTIONS.forEach(action => {
-        row[`${action}_+`] = '';
+        row[`${action}_+`] = agg.oppPoints[action] || '';
         row[`${action}_~`] = '';
-        row[`${action}_-`] = oppErrors[action] || '';
+        row[`${action}_-`] = agg.oppErrors[action] || '';
     });
     return row;
 }
@@ -142,10 +148,11 @@ function statsCsvRows() {
         });
     });
 
-    if (sumOpp(total.oppErrors) > 0) {
-        rows.push(opponentCsvRow('Opponent', total.oppErrors));
+    if (hasOppStats(total)) {
+        const opponent = getTeamNames().opponent;
+        rows.push(opponentCsvRow(opponent, total));
         perSet.forEach(([s, agg]) => {
-            if (sumOpp(agg.oppErrors) > 0) rows.push(opponentCsvRow(`Opponent Set ${s}`, agg.oppErrors));
+            if (hasOppStats(agg)) rows.push(opponentCsvRow(`${opponent} Set ${s}`, agg));
         });
     }
     return rows;

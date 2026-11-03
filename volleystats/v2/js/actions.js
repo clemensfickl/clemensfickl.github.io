@@ -37,6 +37,10 @@ export function recordOppError(action) {
     record({ type: 'oppError', action });
 }
 
+export function recordOppPoint(action) {
+    record({ type: 'oppPoint', action });
+}
+
 export function undoLastAction() {
     if (events.length === 0) return false;
     events.pop();

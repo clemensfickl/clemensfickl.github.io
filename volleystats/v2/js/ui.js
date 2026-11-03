@@ -2,10 +2,11 @@
 import { initRegistration, renderRegistration } from './registration.js';
 import { initTracker, renderTracker } from './tracker.js';
 import { initStats, renderStats } from './stats-view.js';
+import { renderScoreboard } from './scoreboard.js';
 import { onChange } from './dom.js';
 
 const SCREENS = {
-    registration: { sections: ['registration', 'position-assignment', 'version-hint'], render: renderRegistration },
+    registration: { sections: ['match-setup', 'registration', 'position-assignment', 'version-hint'], render: renderRegistration },
     actions: { sections: ['action-tracking'], render: renderTracker },
     statistics: { sections: ['statistics'], render: renderStats }
 };
@@ -21,6 +22,7 @@ function render() {
         cfg.sections.forEach(id => { document.getElementById(id).hidden = name !== screen; });
         document.getElementById(`nav-${name}`).classList.toggle('active', name === screen);
     });
+    renderScoreboard();
     SCREENS[screen].render();
 }
 

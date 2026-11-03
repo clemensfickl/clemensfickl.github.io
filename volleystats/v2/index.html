@@ -14,8 +14,18 @@
             <button id="nav-actions" data-screen="actions" class="btn">Actions</button>
             <button id="nav-statistics" data-screen="statistics" class="btn">Statistics</button>
         </nav>
+        <div id="scoreboard" class="scoreboard"></div>
     </header>
     <main>
+        <section id="match-setup" class="card">
+            <h2>Match</h2>
+            <div class="team-names">
+                <label for="team-name">Our team</label>
+                <input type="text" id="team-name" placeholder="Us">
+                <label for="opponent-name">Opponent</label>
+                <input type="text" id="opponent-name" placeholder="Opponent">
+            </div>
+        </section>
         <section id="registration" class="card">
             <h2>Player Registration</h2>
             <form id="player-form">

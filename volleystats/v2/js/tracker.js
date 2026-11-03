@@ -1,5 +1,5 @@
-// Actions screen: records player actions and opponent errors for the current set.
-import { ACTIONS, recordPlayerAction, recordOppError, getEvents, getCurrentSet, setCurrentSet, undoLastAction } from './actions.js';
+// Actions screen: records player actions and opponent errors and points for the current set.
+import { ACTIONS, recordPlayerAction, recordOppError, recordOppPoint, getEvents, getCurrentSet, setCurrentSet, undoLastAction } from './actions.js';
 import { getPlayers, ROLES, swapWithLibero, exchangeWithBench } from './players.js';
 import { aggregate, playerCounts, winnersErrors, sumOpp } from './stats.js';
 import { el, button, notifyChange } from './dom.js';
@@ -7,6 +7,7 @@ import { openModal } from './modal.js';
 
 const OUTCOME_SYMBOLS = { positive: '+', neutral: '~', negative: '-' };
 const OPP_ERROR_ACTIONS = ['Serv', 'Atk', 'Oth'];
+const OPP_POINT_ACTIONS = ['Serv', 'Atk', 'Blk', 'Oth'];
 const COURT_ROLES = ROLES.map(r => r.key).filter(k => k !== 'libero');
 
 let selectedAction = null;
@@ -31,7 +32,7 @@ export function renderTracker() {
 
     const list = el('div', 'onfield-list');
     onFieldPlayers().forEach(p => list.appendChild(renderPlayerRow(p, setAgg, totalAgg)));
-    list.appendChild(renderOpponentRow(setAgg, totalAgg));
+    list.appendChild(renderOpponentRows(setAgg, totalAgg));
     container.appendChild(list);
 }
 
@@ -96,21 +97,48 @@ function renderPlayerRow(player, setAgg, totalAgg) {
     return row;
 }
 
-function renderOpponentRow(setAgg, totalAgg) {
-    const row = el('div', 'onfield-row opponent-row');
-    row.appendChild(el('div', 'onfield-name', 'Opp Error'));
-
-    const controls = el('div', 'onfield-controls stats-controls opponent-controls');
-    OPP_ERROR_ACTIONS.forEach(action => {
-        controls.appendChild(button(action, 'btn btn-danger opponent-action-btn', () => {
+function renderOpponentRows(setAgg, totalAgg) {
+    const wrap = el('div', 'opponent-rows');
+    wrap.appendChild(renderOpponentRow({
+        label: 'Opp error',
+        hint: 'our point',
+        className: 'opp-error',
+        actions: OPP_ERROR_ACTIONS,
+        counts: `-${sumOpp(setAgg.oppErrors)}(${sumOpp(totalAgg.oppErrors)})`,
+        onTap: action => {
             recordOppError(action);
             selectedAction = 'Serv';
+        }
+    }));
+    wrap.appendChild(renderOpponentRow({
+        label: 'Opp point',
+        hint: 'their point',
+        className: 'opp-point',
+        actions: OPP_POINT_ACTIONS,
+        counts: `+${sumOpp(setAgg.oppPoints)}(${sumOpp(totalAgg.oppPoints)})`,
+        onTap: action => {
+            recordOppPoint(action);
+            selectedAction = 'Recv';
+        }
+    }));
+    return wrap;
+}
+
+function renderOpponentRow({ label, hint, className, actions, counts, onTap }) {
+    const row = el('div', `opponent-row ${className}`);
+    const name = el('div', 'onfield-name', label);
+    name.appendChild(el('span', 'opp-hint', hint));
+    row.appendChild(name);
+
+    const controls = el('div', 'opponent-controls');
+    actions.forEach(action => {
+        controls.appendChild(button(action, 'opponent-action-btn', () => {
+            onTap(action);
             notifyChange();
         }));
     });
     row.appendChild(controls);
-    row.appendChild(el('div', 'onfield-controls action-controls opponent-actions-spacer'));
-    row.appendChild(el('div', 'player-counts opponent-counts', `-${sumOpp(setAgg.oppErrors)}(${sumOpp(totalAgg.oppErrors)})`));
+    row.appendChild(el('div', 'player-counts', counts));
     return row;
 }
 

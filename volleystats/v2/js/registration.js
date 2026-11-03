@@ -1,8 +1,21 @@
-// Registration screen: roster and role assignment.
+// Registration screen: team names, roster and role assignment.
 import { addPlayer, removePlayer, getPlayers, assignRole, ROLES } from './players.js';
+import { getRawTeamNames, setTeamNames } from './match.js';
+import { renderScoreboard } from './scoreboard.js';
 import { el, button, notifyChange } from './dom.js';
 
+const teamInput = () => document.getElementById('team-name');
+const opponentInput = () => document.getElementById('opponent-name');
+
 export function initRegistration() {
+    // Re-rendering the whole screen while typing would drop input focus, so only the scoreboard updates.
+    [teamInput(), opponentInput()].forEach(input => {
+        input.addEventListener('input', () => {
+            setTeamNames(teamInput().value.trim(), opponentInput().value.trim());
+            renderScoreboard();
+        });
+    });
+
     const form = document.getElementById('player-form');
     const input = document.getElementById('player-name');
     form.addEventListener('submit', e => {
@@ -17,6 +30,9 @@ export function initRegistration() {
 }
 
 export function renderRegistration() {
+    const names = getRawTeamNames();
+    if (document.activeElement !== teamInput()) teamInput().value = names.team;
+    if (document.activeElement !== opponentInput()) opponentInput().value = names.opponent;
     renderPlayerList();
     renderRoles();
 }

@@ -13,7 +13,7 @@ function emptyOppCounts() {
 
 // `setFilter` is a set number or 'total'.
 export function aggregate(events, setFilter = 'total') {
-    const result = { players: {}, oppErrors: emptyOppCounts() };
+    const result = { players: {}, oppErrors: emptyOppCounts(), oppPoints: emptyOppCounts() };
     events.forEach(e => {
         if (setFilter !== 'total' && e.set !== Number(setFilter)) return;
         if (e.type === 'player') {
@@ -21,6 +21,8 @@ export function aggregate(events, setFilter = 'total') {
             result.players[e.playerId][e.action][e.outcome]++;
         } else if (e.type === 'oppError') {
             result.oppErrors[e.action]++;
+        } else if (e.type === 'oppPoint') {
+            result.oppPoints[e.action]++;
         }
     });
     return result;
