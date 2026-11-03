@@ -60,6 +60,16 @@ body {
     margin-left: 0.25rem;
 }
 
+.version-hint {
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.version-hint a {
+    color: #007bff;
+}
+
 .btn.delete-player {
     padding: 0rem 0.2rem;
     font-size: 0.75rem;
