@@ -4,6 +4,7 @@ import { getPlayers, swapWithLibero, exchangeWithBench } from './players.js';
 import { aggregate, playerCounts, winnersErrors, sumOpp } from './stats.js';
 import { replaySet, pointWinner, courtPosition, ROLE_ORDER, FRONT_ROW } from './match.js';
 import { openSetupModal } from './setup-modal.js';
+import { recordAndCheckSetEnd, openAdjustModal } from './set-flow.js';
 import { el, button, notifyChange } from './dom.js';
 import { openModal } from './modal.js';
 
@@ -64,8 +65,12 @@ function courtPlayers(state) {
     return allowed ? withPos.filter(({ pos }) => allowed.includes(pos)) : withPos;
 }
 
+function resetAction() {
+    selectedAction = null;
+}
+
 function openSetup(set) {
-    openSetupModal(set, () => { selectedAction = null; });
+    openSetupModal(set, resetAction);
 }
 
 function actionForServe(state) {
@@ -116,7 +121,7 @@ function renderPlayerRow(player, pos, setAgg, totalAgg) {
         controls.appendChild(button(symbol, `big-btn ${outcome}`, () => {
             if (!selectedAction) return alert('Select an action first');
             const action = selectedAction;
-            recordPlayerAction(player.id, action, outcome);
+            recordAndCheckSetEnd(() => recordPlayerAction(player.id, action, outcome), resetAction);
             selectNextAction(action, outcome);
             notifyChange();
         }));
@@ -170,7 +175,7 @@ function renderOpponentRow({ label, hint, className, actions, counts, onTap }) {
     const controls = el('div', 'opponent-controls');
     actions.forEach(action => {
         controls.appendChild(button(action, 'opponent-action-btn', () => {
-            onTap(action);
+            recordAndCheckSetEnd(() => onTap(action), resetAction);
             selectedAction = actionForServe(replaySet(getCurrentSet()));
             notifyChange();
         }));
@@ -181,32 +186,27 @@ function renderOpponentRow({ label, hint, className, actions, counts, onTap }) {
 }
 
 function renderToolbar(set) {
-    renderSetSelector();
-    document.getElementById('set-selector-container')
-        .appendChild(button('Lineup', 'btn btn-secondary', () => openSetup(set)));
+    const container = document.getElementById('set-selector-container');
+    container.innerHTML = '';
+    container.appendChild(renderSetSelector());
+    container.appendChild(button('Lineup', 'btn btn-secondary', () => openSetup(set)));
+    container.appendChild(button('Adjust', 'btn btn-secondary', () => openAdjustModal(resetAction)));
 }
 
 function renderSetSelector() {
-    const container = document.getElementById('set-selector-container');
-    container.innerHTML = '';
-
-    const label = el('label', null, 'Set:');
-    label.htmlFor = 'set-selector';
-    container.appendChild(label);
-
     const select = el('select', 'btn');
     select.id = 'set-selector';
+    select.setAttribute('aria-label', 'Set');
     const currentSet = getCurrentSet();
-    const maxSet = Math.max(currentSet + 1, 5);
-    for (let i = 1; i <= maxSet; i++) {
-        select.appendChild(new Option(i, i, false, i === currentSet));
+    for (let i = 1; i <= 5; i++) {
+        select.appendChild(new Option(`Set ${i}`, i, false, i === currentSet));
     }
     select.addEventListener('change', () => {
         setCurrentSet(select.value);
-        selectedAction = null;
+        resetAction();
         notifyChange();
     });
-    container.appendChild(select);
+    return select;
 }
 
 function openExchangeModal(fieldPlayerId) {

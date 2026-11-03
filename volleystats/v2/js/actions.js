@@ -41,6 +41,19 @@ export function recordOppPoint(action) {
     record({ type: 'oppPoint', action });
 }
 
+// Corrections: they affect score, rotation or serve but no player statistics.
+export function recordManualPoint(to) {
+    record({ type: 'manualPoint', to });
+}
+
+export function recordRotate(delta) {
+    record({ type: 'rotate', delta });
+}
+
+export function recordSwitchServe() {
+    record({ type: 'switchServe' });
+}
+
 export function undoLastAction() {
     if (events.length === 0) return false;
     events.pop();

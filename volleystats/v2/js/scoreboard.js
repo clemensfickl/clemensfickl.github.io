@@ -1,6 +1,6 @@
 // Scoreboard shown below the tabs on every screen.
 import { getCurrentSet } from './actions.js';
-import { replaySet, getTeamNames } from './match.js';
+import { replaySet, getTeamNames, getMatchScore } from './match.js';
 import { el } from './dom.js';
 
 export function renderScoreboard() {
@@ -19,6 +19,8 @@ export function renderScoreboard() {
     board.appendChild(row);
 
     const meta = [`Set ${set}`];
+    const sets = getMatchScore();
+    if (sets.us + sets.them > 0) meta.push(`Sets ${sets.us}–${sets.them}`);
     if (state.setterPos) meta.push(`Rotation ${state.setterPos}`);
     board.appendChild(el('div', 'sb-meta', meta.join(' · ')));
 }

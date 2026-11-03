@@ -1,7 +1,7 @@
 // Match logic derived from the event log: who won each point, the score, serve and rotation.
 import { load, save } from './storage.js';
 import { getEvents } from './actions.js';
-import { SCORING_ACTIONS } from './stats.js';
+import { SCORING_ACTIONS, setsWithEvents } from './stats.js';
 
 // Serving order of a 5-1 lineup: the opposite stands across from the setter, middles and outsides across from each other.
 export const ROLE_ORDER = ['setter', 'outsideHitter1', 'middleBlocker1', 'oppositeHitter', 'outsideHitter2', 'middleBlocker2'];
@@ -90,6 +90,8 @@ export function pointWinner(event) {
             return 'us';
         case 'oppPoint':
             return 'them';
+        case 'manualPoint':
+            return event.to;
         default:
             return null;
     }
@@ -109,6 +111,14 @@ export function replaySet(set, events = getEvents()) {
 
     events.forEach(e => {
         if (e.set !== set) return;
+        if (e.type === 'rotate') {
+            if (state.setterPos) state.setterPos = rotate(state.setterPos, e.delta);
+            return;
+        }
+        if (e.type === 'switchServe') {
+            if (state.serving) state.serving = state.serving === 'us' ? 'them' : 'us';
+            return;
+        }
         const winner = pointWinner(e);
         if (!winner) return;
 
@@ -122,4 +132,22 @@ export function replaySet(set, events = getEvents()) {
         state.log.push({ us: state.us, them: state.them, winner, event: e, servedBy, setterPos });
     });
     return state;
+}
+
+export function isSetOver(state, set) {
+    const target = set === 5 ? 15 : 25;
+    return Math.max(state.us, state.them) >= target && Math.abs(state.us - state.them) >= 2;
+}
+
+export function getMatchScore(events = getEvents()) {
+    const score = { us: 0, them: 0 };
+    setsWithEvents(events).forEach(set => {
+        const state = replaySet(set, events);
+        if (isSetOver(state, set)) score[state.us > state.them ? 'us' : 'them']++;
+    });
+    return score;
+}
+
+export function isMatchOver(score) {
+    return score.us >= 3 || score.them >= 3;
 }

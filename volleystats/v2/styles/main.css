@@ -601,6 +601,81 @@ select {
     box-shadow: var(--shadow);
 }
 
+/* Adjust and set end */
+.modal-text {
+    margin: 0.4rem 0;
+    line-height: 1.4;
+}
+
+.modal-text.muted {
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+
+.adjust-status {
+    margin: 0 0 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    background: #f8fafc;
+    text-align: center;
+}
+
+.adjust-score {
+    font-size: 1.5rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+}
+
+.adjust-meta {
+    color: var(--muted);
+    font-size: 0.8rem;
+}
+
+.adjust-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem;
+}
+
+.adjust-us,
+.adjust-them {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+}
+
+.adjust-plus {
+    font-size: 1.2rem;
+    font-weight: 800;
+}
+
+.adjust-team {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.8rem;
+}
+
+.adjust-us {
+    background: #dcfce7;
+    border-color: #bbf7d0;
+    color: #15803d;
+    font-weight: 600;
+}
+
+.adjust-them {
+    background: #fee2e2;
+    border-color: #fecaca;
+    color: #b91c1c;
+    font-weight: 600;
+}
+
+.adjust-wide {
+    grid-column: span 2;
+}
+
 /* Match setup */
 .team-names {
     display: grid;
