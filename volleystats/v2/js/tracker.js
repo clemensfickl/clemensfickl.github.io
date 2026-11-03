@@ -44,7 +44,11 @@ export function renderTracker() {
     if (!state.hasSetup) container.appendChild(renderSetupBanner(set));
 
     const list = el('div', 'onfield-list');
-    courtPlayers(state).forEach(({ player, pos }) => list.appendChild(renderPlayerRow(player, pos, setAgg, totalAgg)));
+    const allowed = POSITION_FILTER[selectedAction];
+    courtPlayers(state).forEach(({ player, pos }) => {
+        const active = !pos || !allowed || allowed.includes(pos);
+        list.appendChild(renderPlayerRow(player, pos, active, setAgg, totalAgg));
+    });
     list.appendChild(renderOpponentRow(setAgg, totalAgg));
     container.appendChild(list);
 
@@ -62,11 +66,9 @@ function courtPlayers(state) {
             .sort((a, b) => ROLE_ORDER.indexOf(a.role) - ROLE_ORDER.indexOf(b.role))
             .map(player => ({ player, pos: null }));
     }
-    const withPos = onCourt
+    return onCourt
         .map(player => ({ player, pos: courtPosition(player.role, state.setterPos) }))
         .sort((a, b) => a.pos - b.pos);
-    const allowed = POSITION_FILTER[selectedAction];
-    return allowed ? withPos.filter(({ pos }) => allowed.includes(pos)) : withPos;
 }
 
 function resetAction() {
@@ -109,12 +111,13 @@ function renderActionSelect() {
     return wrap;
 }
 
-function renderPlayerRow(player, pos, setAgg, totalAgg) {
+// Inactive rows (e.g. everyone but the server) keep only the substitution buttons.
+function renderPlayerRow(player, pos, active, setAgg, totalAgg) {
     const players = getPlayers();
     const libero = players.find(p => p.isLibero);
     const isLiberoOnField = libero && libero.role !== 'libero';
 
-    const row = el('div', 'onfield-row');
+    const row = el('div', 'onfield-row' + (active ? '' : ' inactive'));
     const name = el('div', 'onfield-name');
     if (pos) name.appendChild(el('span', 'pos-badge' + (FRONT_ROW.includes(pos) ? ' front' : ''), pos));
     name.appendChild(document.createTextNode(player.isLibero ? `${player.name} (L)` : player.name));
