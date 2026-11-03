@@ -1,11 +1,15 @@
 function exportCSV(data, filename) {
+    if (data.length === 0) {
+        alert('Nothing to export yet');
+        return;
+    }
     const csvRows = [];
     const headers = Object.keys(data[0]);
     csvRows.push(headers.join(','));
 
     for (const row of data) {
         const values = headers.map(header => {
-            const escaped = ('' + row[header]).replace(/"/g, '\\"');
+            const escaped = ('' + row[header]).replace(/"/g, '""');
             return `"${escaped}"`;
         });
         csvRows.push(values.join(','));
