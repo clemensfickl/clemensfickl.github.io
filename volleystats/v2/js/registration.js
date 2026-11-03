@@ -1,6 +1,8 @@
 // Registration screen: team names, roster and role assignment.
-import { addPlayer, removePlayer, getPlayers, assignRole, ROLES, countImportableV1Players, importV1Players } from './players.js';
-import { getRawTeamNames, setTeamNames } from './match.js';
+import { addPlayer, removePlayer, getPlayers, countImportableV1Players, importV1Players } from './players.js';
+import { getRawTeamNames, setTeamNames, getSetSetup } from './match.js';
+import { getCurrentSet } from './actions.js';
+import { renderLineupBoard } from './lineup-board.js';
 import { renderScoreboard } from './scoreboard.js';
 import { el, button, notifyChange } from './dom.js';
 
@@ -34,7 +36,7 @@ export function renderRegistration() {
     if (document.activeElement !== teamInput()) teamInput().value = names.team;
     if (document.activeElement !== opponentInput()) opponentInput().value = names.opponent;
     renderPlayerList();
-    renderRoles();
+    renderLineup();
 }
 
 function renderImportOffer() {
@@ -65,36 +67,8 @@ function renderPlayerList() {
     });
 }
 
-function renderRoles() {
-    const container = document.getElementById('positions');
-    container.innerHTML = '';
-    const players = getPlayers();
-
-    ROLES.forEach(role => {
-        const wrap = el('div', 'position-item');
-        const label = el('label', null, role.label + ':');
-        label.htmlFor = `pos-${role.key}`;
-        wrap.appendChild(label);
-
-        const select = el('select');
-        select.id = `pos-${role.key}`;
-        select.appendChild(new Option('-- None --', ''));
-        // Only players on the bench, or the one currently holding this role, are selectable.
-        players
-            .filter(p => !p.role || p.role === role.key)
-            .forEach(p => select.appendChild(new Option(p.name, p.id, false, p.role === role.key)));
-
-        select.addEventListener('change', () => {
-            if (select.value) {
-                assignRole(select.value, role.key);
-            } else {
-                const current = players.find(p => p.role === role.key);
-                if (current) assignRole(current.id, null);
-            }
-            notifyChange();
-        });
-
-        wrap.appendChild(select);
-        container.appendChild(wrap);
-    });
+// Shown in the starting rotation of the current set, or rotation 1 before it is set up.
+function renderLineup() {
+    const setup = getSetSetup(getCurrentSet());
+    renderLineupBoard(document.getElementById('positions'), setup ? setup.setterStart : 1);
 }

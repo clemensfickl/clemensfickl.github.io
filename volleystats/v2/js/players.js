@@ -2,13 +2,13 @@
 import { load, save, readV1 } from './storage.js';
 
 export const ROLES = [
-    { key: 'setter', label: 'Setter' },
-    { key: 'outsideHitter1', label: 'Outside 1' },
-    { key: 'middleBlocker1', label: 'Middle 1' },
-    { key: 'oppositeHitter', label: 'Opposite' },
-    { key: 'outsideHitter2', label: 'Outside 2' },
-    { key: 'middleBlocker2', label: 'Middle 2' },
-    { key: 'libero', label: 'Libero' }
+    { key: 'setter', label: 'Setter', short: 'S' },
+    { key: 'outsideHitter1', label: 'Outside 1', short: 'OH1' },
+    { key: 'middleBlocker1', label: 'Middle 1', short: 'MB1' },
+    { key: 'oppositeHitter', label: 'Opposite', short: 'OPP' },
+    { key: 'outsideHitter2', label: 'Outside 2', short: 'OH2' },
+    { key: 'middleBlocker2', label: 'Middle 2', short: 'MB2' },
+    { key: 'libero', label: 'Libero', short: 'L' }
 ];
 
 const players = [];
@@ -74,23 +74,32 @@ export function removePlayer(id) {
     savePlayers();
 }
 
-// A null role moves the player to the bench.
-export function assignRole(id, role) {
-    const player = players.find(p => p.id === id);
-    if (!player) return;
-
-    if (role) {
-        players.forEach(p => {
-            if (p.role === role && p.id !== id) {
-                p.role = null;
-                if (role === 'libero') p.isLibero = false;
-            }
-        });
-        player.role = role;
-        if (role === 'libero') player.isLibero = true;
-    } else {
-        player.role = null;
+// The lineup as planned, ignoring a libero who currently covers someone: role key -> player.
+export function baseLineup() {
+    const lineup = {};
+    players.forEach(p => {
+        if (p.role) lineup[p.role] = p;
+    });
+    const libero = players.find(p => p.isLibero);
+    if (libero && libero.role && libero.role !== 'libero' && lineup.libero) {
+        lineup[libero.role] = lineup.libero;
+        lineup.libero = libero;
     }
+    return lineup;
+}
+
+// Moves a player to a role (null: bench). Whoever held that role takes the player's old place.
+export function placePlayer(id, role) {
+    setLiberoCoverage(null);
+    const player = players.find(p => p.id === id);
+    if (!player || player.role === role) return;
+
+    const holder = role ? players.find(p => p.role === role) : null;
+    if (holder) holder.role = player.role;
+    player.role = role;
+    players.forEach(p => {
+        p.isLibero = p.role === 'libero';
+    });
     savePlayers();
 }
 

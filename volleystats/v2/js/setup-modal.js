@@ -1,11 +1,8 @@
-// Set setup: where the setter starts and which team serves first.
-import { getSetSetup, setSetSetup, courtPosition, getTeamNames, ROLE_ORDER } from './match.js';
-import { getPlayers } from './players.js';
+// Set setup: the lineup, where the setter starts and which team serves first.
+import { getSetSetup, setSetSetup, getTeamNames } from './match.js';
+import { renderLineupBoard } from './lineup-board.js';
 import { el, button, notifyChange } from './dom.js';
 import { openModal } from './modal.js';
-
-// Seen from our side of the net: front row on top.
-const COURT_LAYOUT = [4, 3, 2, 5, 6, 1];
 
 export function openSetupModal(set, onSaved = () => {}) {
     const existing = getSetSetup(set);
@@ -13,29 +10,28 @@ export function openSetupModal(set, onSaved = () => {}) {
     let weServeFirst = existing ? existing.weServeFirst : true;
     const names = getTeamNames();
 
-    openModal(`Set ${set}: starting rotation`, (modal, close) => {
-        modal.appendChild(el('p', 'modal-label', 'Tap where the setter starts'));
-        const court = el('div', 'court');
-        modal.appendChild(el('div', 'court-net', 'Net'));
-        modal.appendChild(court);
+    openModal(`Set ${set}: lineup`, (modal, close) => {
+        modal.classList.add('setup-modal');
+        modal.appendChild(el('p', 'modal-label', 'Setter starts on'));
+        const setterPicker = el('div', 'segmented setter-picker');
+        modal.appendChild(setterPicker);
+
+        const board = el('div');
+        modal.appendChild(board);
 
         modal.appendChild(el('p', 'modal-label', 'First serve'));
         const serveToggle = el('div', 'segmented');
         modal.appendChild(serveToggle);
 
         const render = () => {
-            court.innerHTML = '';
-            const byPosition = playersByPosition(setterStart);
-            COURT_LAYOUT.forEach(pos => {
-                const isSetter = pos === setterStart;
-                const cell = button('', 'court-cell' + (isSetter ? ' active' : ''), () => {
+            setterPicker.innerHTML = '';
+            for (let pos = 1; pos <= 6; pos++) {
+                setterPicker.appendChild(button(pos, 'segmented-btn' + (pos === setterStart ? ' active' : ''), () => {
                     setterStart = pos;
                     render();
-                });
-                cell.appendChild(el('span', 'court-pos', pos));
-                cell.appendChild(el('span', 'court-player', byPosition[pos] || '–'));
-                court.appendChild(cell);
-            });
+                }));
+            }
+            renderLineupBoard(board, setterStart);
 
             serveToggle.innerHTML = '';
             [[true, names.team], [false, names.opponent]].forEach(([value, label]) => {
@@ -48,8 +44,8 @@ export function openSetupModal(set, onSaved = () => {}) {
         render();
 
         const btnRow = el('div', 'modal-buttons');
-        btnRow.appendChild(button('Cancel', 'btn', close));
-        btnRow.appendChild(button('Start set', 'btn btn-primary', () => {
+        btnRow.appendChild(button('Close', 'btn', close));
+        btnRow.appendChild(button(existing ? 'Save' : 'Start set', 'btn btn-primary', () => {
             setSetSetup(set, { setterStart, weServeFirst });
             close();
             onSaved();
@@ -57,13 +53,4 @@ export function openSetupModal(set, onSaved = () => {}) {
         }));
         modal.appendChild(btnRow);
     });
-}
-
-function playersByPosition(setterPos) {
-    const result = {};
-    getPlayers().forEach(p => {
-        if (!ROLE_ORDER.includes(p.role)) return;
-        result[courtPosition(p.role, setterPos)] = p.name;
-    });
-    return result;
 }

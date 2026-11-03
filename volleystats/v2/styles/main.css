@@ -196,23 +196,6 @@ select {
     display: none;
 }
 
-#positions {
-    display: grid;
-    gap: 0.45rem;
-}
-
-.position-item {
-    display: grid;
-    grid-template-columns: 6.5rem 1fr;
-    align-items: center;
-    gap: 0.6rem;
-}
-
-.position-item label {
-    color: var(--muted);
-    font-size: 0.9rem;
-}
-
 .version-hint {
     margin: 0.25rem 0.25rem 1rem;
     font-size: 0.8rem;
@@ -575,39 +558,144 @@ select {
     background: #fed7aa;
 }
 
+.setup-modal .lineup-board {
+    margin-top: 0.6rem;
+}
+
+.lineup-slot {
+    border: 2px solid transparent;
+    border-radius: 8px;
+    transition: border-color 0.1s, background-color 0.1s;
+}
+
+.lineup-slot.drop-target {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+}
+
 .court-cell {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 0.15rem;
-    padding: 0.5rem 0.25rem;
-    border: 2px solid transparent;
-    border-radius: 8px;
+    align-items: stretch;
+    gap: 0.2rem;
+    min-width: 0;
+    padding: 0.25rem;
     background: #fff7ed;
 }
 
-.court-cell.active {
-    border-color: var(--primary);
-    background: var(--surface);
+.court-cell-head {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 0.15rem;
+    font-size: 0.65rem;
+    font-weight: 700;
 }
 
 .court-pos {
     color: var(--muted);
-    font-size: 0.7rem;
-    font-weight: 700;
 }
 
-.court-player {
-    max-width: 100%;
+.court-role {
+    color: #c2410c;
+}
+
+.court-cell.setter .court-role {
+    color: var(--primary);
+}
+
+.lineup-reserve {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.4rem;
+    margin-top: 0.4rem;
+}
+
+.libero-slot,
+.bench-slot {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+    padding: 0.3rem;
+    background: #f1f5f9;
+}
+
+.libero-slot {
+    min-width: 5.5rem;
+    background: #ecfdf5;
+}
+
+.slot-title {
+    color: var(--muted);
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.bench-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.slot-empty {
+    padding: 0.3rem 0;
+    color: #94a3b8;
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+.player-chip {
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
     font-size: 0.85rem;
     font-weight: 600;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
 }
 
-.court-cell.active .court-player {
-    color: var(--primary);
+.player-chip.selected {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: #fff;
+}
+
+.player-chip.dragging {
+    opacity: 0.35;
+}
+
+.drag-ghost {
+    position: fixed;
+    z-index: 200;
+    transform: translate(-50%, -50%) scale(1.08);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.25);
+    pointer-events: none;
+}
+
+.lineup-hint {
+    margin: 0.4rem 0 0;
+    color: var(--muted);
+    font-size: 0.75rem;
+}
+
+.setter-picker .segmented-btn {
+    padding: 0.3rem 0;
+}
+
+.modal.setup-modal {
+    padding: 1rem;
+}
+
+.setup-modal .modal-label:first-of-type {
+    margin-top: 0;
 }
 
 .segmented {
@@ -742,6 +830,8 @@ select {
 .modal {
     width: 100%;
     max-width: 360px;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
     padding: 1.25rem;
     background: var(--surface);
     border-radius: 16px;
