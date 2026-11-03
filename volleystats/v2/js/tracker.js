@@ -1,6 +1,6 @@
 // Actions screen: records player actions and opponent errors and points for the current set.
 import { ACTIONS, recordPlayerAction, recordOppError, recordOppPoint, getEvents, getCurrentSet, setCurrentSet, undoLastAction } from './actions.js';
-import { getPlayers, getLiberos, liberoOnCourt, swapWithLibero, exchangeWithBench } from './players.js';
+import { getPlayers, getLiberos, liberoOnCourt, liberoSlot, swapWithLibero, exchangeWithBench } from './players.js';
 import { aggregate, playerCounts, winnersErrors, sumOpp } from './stats.js';
 import { replaySet, pointWinner, courtPosition, getTeamNames, ROLE_ORDER, FRONT_ROW } from './match.js';
 import { openSetupModal } from './setup-modal.js';
@@ -67,10 +67,12 @@ export function renderTracker() {
     }));
     // The court needs the rotation; until the lineup is set the list is shown.
     if (getActionsLayout() === 'court' && state.setterPos) {
-        list.appendChild(renderCourt(players, {
+        const backRow = player => !FRONT_ROW.includes(courtPosition(player.role, state.setterPos));
+        list.appendChild(renderCourt(players, reservePlayers(), {
             selectedAction,
             record: recordOutcome,
-            substitutionButtons,
+            substitution: (player, target) => substitution(player, target, backRow),
+            refresh: notifyChange,
             counts: player => countsText(player, setAgg, totalAgg),
             liberoLabel
         }));
@@ -178,6 +180,53 @@ function substitutionButtons(player) {
         });
     }
     return buttons;
+}
+
+// Libero slots hold the libero, or while she is on court the player she covers.
+function reservePlayers() {
+    const players = getPlayers();
+    return {
+        liberos: getLiberos().map(libero => {
+            const n = libero.liberoNo;
+            const waiting = players.find(p => p.role === liberoSlot(n));
+            return { n, player: waiting, covered: waiting && waiting !== libero };
+        }),
+        bench: players.filter(p => !p.role)
+    };
+}
+
+// The court view's drag and drop counterpart of `substitutionButtons`. `target` is { player }, { libero: n } or
+// { bench: true }; returns the substitution to run, or null if the drop isn't allowed. A libero only comes in
+// for a player for whom `backRow(player)` holds.
+function substitution(player, target, backRow) {
+    const onCourt = liberoOnCourt();
+    const isOnCourt = p => ROLE_ORDER.includes(p.role);
+    const other = target.player;
+    if (other === player) return null;
+
+    if (!player.role) {
+        return other && isOnCourt(other) && !other.liberoNo ? () => exchangeWithBench(other.id, player.id) : null;
+    }
+    if (player === onCourt) {
+        const n = player.liberoNo;
+        if (target.bench || target.libero === n) return () => swapWithLibero(player.id, n);
+        if (target.libero) return () => swapWithLibero(player.id, target.libero);
+        return null;
+    }
+    if (player.liberoNo) {
+        const allowed = other && isOnCourt(other) && (onCourt ? other === onCourt : backRow(other));
+        return allowed ? () => swapWithLibero(other.id, player.liberoNo) : null;
+    }
+    if (!isOnCourt(player)) {
+        return onCourt && other === onCourt ? () => swapWithLibero(onCourt.id, onCourt.liberoNo) : null;
+    }
+    if (other && !other.role) return () => exchangeWithBench(player.id, other.id);
+    if (target.bench) {
+        const bench = getPlayers().filter(p => !p.role);
+        if (bench.length === 0) return null;
+        return bench.length === 1 ? () => exchangeWithBench(player.id, bench[0].id) : () => openExchangeModal(player.id);
+    }
+    return target.libero && !onCourt && backRow(player) ? () => swapWithLibero(player.id, target.libero) : null;
 }
 
 // Inactive rows (e.g. everyone but the server) keep only the substitution buttons.

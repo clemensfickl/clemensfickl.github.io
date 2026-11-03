@@ -543,30 +543,59 @@ select {
 .cp-btn.neutral { background: var(--neutral); }
 .cp-btn.negative { background: var(--negative); }
 
-.cp-subs {
+.court-player-cell[data-source] {
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+}
+
+.court-player-cell.dragging {
+    opacity: 0.5;
+}
+
+.court-reserve {
     display: flex;
     gap: 4px;
-    margin-top: auto;
-    padding-top: 5px;
+    margin-top: 4px;
 }
 
-.cp-subs > * {
-    flex: 1;
+.reserve-slot {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
     min-width: 0;
+    padding: 0.3rem;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    background: #f1f5f9;
 }
 
-.cp-subs .libero-buttons {
-    gap: 4px;
+.libero-reserve {
+    flex: 0 0 5.2rem;
+    background: #ecfdf5;
 }
 
-.cp-subs .exchange-btn,
-.cp-subs .swap-libero {
-    height: 30px;
-    font-size: 0.8rem;
+.bench-reserve {
+    flex: 1;
 }
 
-.cp-subs:empty {
-    display: none;
+.player-chip.covered {
+    color: var(--muted);
+    font-style: italic;
+}
+
+.court-view .court-drop.drop-allowed {
+    border: 2px dashed var(--primary);
+}
+
+.court-view .court-drop.drop-target {
+    border-style: solid;
+    background: var(--primary-soft);
+}
+
+.court-player-cell.selected {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--primary-soft);
 }
 
 /* Scoreboard */
