@@ -9,7 +9,14 @@ import { el, button, notifyChange } from './dom.js';
 import { openModal } from './modal.js';
 
 const OUTCOME_SYMBOLS = { positive: '+', neutral: '~', negative: '-' };
-const OPP_ACTIONS = ['Serv', 'Atk', 'Blk', 'Oth'];
+// The opponent can't win a point with a reception, and a block error ends up as our attack point or Oth.
+const OPP_ACTIONS = {
+    Serv: ['positive', 'negative'],
+    Recv: ['negative'],
+    Atk: ['positive', 'negative'],
+    Blk: ['positive'],
+    Oth: ['positive', 'negative']
+};
 const POSITION_FILTER = { Serv: [1], Blk: FRONT_ROW };
 
 let selectedAction = null;
@@ -165,11 +172,11 @@ function renderOpponentRow(setAgg, totalAgg) {
     row.appendChild(el('div', 'onfield-name', getTeamNames().opponent));
 
     const controls = el('div', 'opponent-controls');
-    OPP_ACTIONS.forEach(action => {
-        const group = el('div', 'opp-group');
+    Object.entries(OPP_ACTIONS).forEach(([action, outcomes]) => {
+        const group = el('div', 'opp-group' + (outcomes.length === 1 ? ' single' : ''));
         group.appendChild(el('span', 'opp-group-label', action));
-        group.appendChild(opponentButton('+', 'positive', () => recordOppPoint(action)));
-        group.appendChild(opponentButton('-', 'negative', () => recordOppError(action)));
+        if (outcomes.includes('positive')) group.appendChild(opponentButton('+', 'positive', () => recordOppPoint(action)));
+        if (outcomes.includes('negative')) group.appendChild(opponentButton('-', 'negative', () => recordOppError(action)));
         controls.appendChild(group);
     });
     row.appendChild(controls);
