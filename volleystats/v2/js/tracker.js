@@ -23,6 +23,11 @@ export function initTracker() {
     });
 }
 
+// Called when navigating to the Actions screen, so a missing lineup is asked for again.
+export function resetSetupPrompts() {
+    promptedSets.clear();
+}
+
 export function renderTracker() {
     const set = getCurrentSet();
     const state = replaySet(set);

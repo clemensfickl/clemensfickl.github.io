@@ -1,5 +1,9 @@
 import { el } from './dom.js';
 
+export function closeAllModals() {
+    document.querySelectorAll('.modal-overlay').forEach(overlay => overlay.remove());
+}
+
 // `build(modal, close)` fills the modal body. Returns the close function.
 export function openModal(title, build) {
     const overlay = el('div', 'modal-overlay');

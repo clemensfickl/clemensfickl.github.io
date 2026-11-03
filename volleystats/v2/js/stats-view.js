@@ -17,7 +17,7 @@ export function initStats() {
         exportCSV(pointLogCsvRows(), 'volleyball-point-log.csv');
     });
     document.getElementById('reset-stats').addEventListener('click', () => {
-        if (!confirm('Are you sure you want to reset all statistics? This cannot be undone!')) return;
+        if (!confirm('Start a new match? This deletes all recorded actions, scores and set lineups. Players and team names are kept. This cannot be undone!')) return;
         resetEvents();
         clearSetSetups();
         statsFilter = 'total';

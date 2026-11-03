@@ -1,11 +1,12 @@
 // Screen routing: shows the screen named in the URL hash and re-renders it on every change.
 import { initRegistration, renderRegistration } from './registration.js';
-import { initTracker, renderTracker } from './tracker.js';
+import { initTracker, renderTracker, resetSetupPrompts } from './tracker.js';
 import { initStats, renderStats } from './stats-view.js';
 import { renderScoreboard } from './scoreboard.js';
 import { syncLibero } from './libero.js';
 import { setWakeLock } from './wake-lock.js';
 import { onChange } from './dom.js';
+import { closeAllModals } from './modal.js';
 
 const SCREENS = {
     registration: { sections: ['match-setup', 'registration', 'position-assignment', 'version-hint'], render: renderRegistration },
@@ -40,7 +41,11 @@ export function initUI() {
             window.location.hash = `#/${name}`;
         });
     });
-    window.addEventListener('hashchange', render);
+    window.addEventListener('hashchange', () => {
+        closeAllModals();
+        resetSetupPrompts();
+        render();
+    });
     onChange(render);
     render();
 }
