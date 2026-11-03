@@ -8,15 +8,26 @@ export const ROLES = [
     { key: 'oppositeHitter', label: 'Opposite', short: 'OPP' },
     { key: 'outsideHitter2', label: 'Outside 2', short: 'OH2' },
     { key: 'middleBlocker2', label: 'Middle 2', short: 'MB2' },
-    { key: 'libero', label: 'Libero', short: 'L' }
+    { key: 'libero1', label: 'Libero 1', short: 'L1' },
+    { key: 'libero2', label: 'Libero 2', short: 'L2' }
 ];
+
+// A libero's own slot. While libero n is on court, the player they replace waits in that slot.
+export const liberoSlot = n => `libero${n}`;
 
 const players = [];
 
 export function loadPlayers() {
     const stored = load('players', []);
     players.length = 0;
-    if (Array.isArray(stored)) players.push(...stored);
+    if (Array.isArray(stored)) players.push(...stored.map(migrateSingleLibero));
+}
+
+// Earlier v2 builds had one libero: role 'libero' and an isLibero flag.
+function migrateSingleLibero(p) {
+    if (!('isLibero' in p)) return p;
+    const { isLibero, ...rest } = p;
+    return { ...rest, role: p.role === 'libero' ? liberoSlot(1) : p.role, liberoNo: isLibero ? 1 : null };
 }
 
 function savePlayers() {
@@ -28,7 +39,7 @@ export function getPlayers() {
 }
 
 export function addPlayer(name) {
-    const player = { id: uuidv4(), name, role: null, isLibero: false };
+    const player = { id: uuidv4(), name, role: null, liberoNo: null };
     players.push(player);
     savePlayers();
     return player;
@@ -43,16 +54,16 @@ export function countImportableV1Players() {
     return v1Players().length;
 }
 
-// v1 stores the role as `position`; role keys are identical in both versions.
+// v1 stores the role as `position` and has a single libero.
 export function importV1Players() {
     const roleKeys = ROLES.map(r => r.key);
     v1Players().forEach(p => {
-        players.push({
+        players.push(migrateSingleLibero({
             id: uuidv4(),
             name: p.name,
-            role: roleKeys.includes(p.position) ? p.position : null,
+            role: p.position === 'libero' || roleKeys.includes(p.position) ? p.position : null,
             isLibero: !!p.isLibero
-        });
+        }));
     });
     savePlayers();
 }
@@ -74,67 +85,86 @@ export function removePlayer(id) {
     savePlayers();
 }
 
+// Assigned liberos, ordered by number.
+export function getLiberos() {
+    return players.filter(p => p.liberoNo && p.role).sort((a, b) => a.liberoNo - b.liberoNo);
+}
+
+export function liberoOnCourt() {
+    return players.find(p => p.liberoNo && p.role && p.role !== liberoSlot(p.liberoNo)) || null;
+}
+
+function bringBack(libero) {
+    const covered = players.find(p => p.role === liberoSlot(libero.liberoNo));
+    if (covered) covered.role = libero.role;
+    libero.role = liberoSlot(libero.liberoNo);
+}
+
+function cover(libero, role) {
+    const covered = players.find(p => p.role === role);
+    if (!covered) return;
+    covered.role = liberoSlot(libero.liberoNo);
+    libero.role = role;
+    save('lastLibero', libero.liberoNo);
+}
+
 // The lineup as planned, ignoring a libero who currently covers someone: role key -> player.
 export function baseLineup() {
     const lineup = {};
     players.forEach(p => {
         if (p.role) lineup[p.role] = p;
     });
-    const libero = players.find(p => p.isLibero);
-    if (libero && libero.role && libero.role !== 'libero' && lineup.libero) {
-        lineup[libero.role] = lineup.libero;
-        lineup.libero = libero;
+    const libero = liberoOnCourt();
+    if (libero) {
+        const slot = liberoSlot(libero.liberoNo);
+        if (lineup[slot]) lineup[libero.role] = lineup[slot];
+        lineup[slot] = libero;
     }
     return lineup;
 }
 
 // Moves a player to a role (null: bench). Whoever held that role takes the player's old place.
 export function placePlayer(id, role) {
-    setLiberoCoverage(null);
+    const active = liberoOnCourt();
+    if (active) bringBack(active);
     const player = players.find(p => p.id === id);
-    if (!player || player.role === role) return;
-
-    const holder = role ? players.find(p => p.role === role) : null;
-    if (holder) holder.role = player.role;
-    player.role = role;
+    if (player && player.role !== role) {
+        const holder = role ? players.find(p => p.role === role) : null;
+        if (holder) holder.role = player.role;
+        player.role = role;
+    }
     players.forEach(p => {
-        p.isLibero = p.role === 'libero';
+        p.liberoNo = p.role === liberoSlot(1) ? 1 : p.role === liberoSlot(2) ? 2 : null;
     });
     savePlayers();
 }
 
-// Swaps the given player with whoever currently sits in the libero slot.
-export function swapWithLibero(id) {
-    const player = players.find(p => p.id === id);
-    if (!player) return;
-    const inLiberoSlot = players.find(p => p.role === 'libero');
+// Tapping libero n on a player: brings libero n in, takes libero n back out, or exchanges the two liberos.
+export function swapWithLibero(playerId, n) {
+    const player = players.find(p => p.id === playerId);
+    const libero = getLiberos().find(p => p.liberoNo === n);
+    if (!player || !libero) return;
 
-    if (inLiberoSlot && inLiberoSlot.id !== id) {
-        inLiberoSlot.role = player.role || null;
-        player.role = 'libero';
-    } else if (!inLiberoSlot) {
-        player.role = 'libero';
+    if (player === libero) {
+        bringBack(libero);
+    } else if (player.liberoNo) {
+        const role = player.role;
+        bringBack(player);
+        cover(libero, role);
+    } else if (libero.role === liberoSlot(n)) {
+        cover(libero, player.role);
     }
     savePlayers();
 }
 
-// Brings the libero back to the libero slot, then lets them replace whoever holds `role` (null: libero stays out).
+// Takes the libero on court back out, then lets the libero used last replace whoever holds `role`.
 export function setLiberoCoverage(role) {
-    const libero = players.find(p => p.isLibero);
-    if (!libero || !libero.role) return;
-
-    if (libero.role !== 'libero') {
-        const replaced = players.find(p => p.role === 'libero');
-        if (!replaced) return;
-        replaced.role = libero.role;
-        libero.role = 'libero';
-    }
+    const active = liberoOnCourt();
+    if (active) bringBack(active);
     if (role) {
-        const covered = players.find(p => p.role === role);
-        if (covered) {
-            covered.role = 'libero';
-            libero.role = role;
-        }
+        const liberos = getLiberos();
+        const libero = liberos.find(p => p.liberoNo === load('lastLibero', 1)) || liberos[0];
+        if (libero) cover(libero, role);
     }
     savePlayers();
 }

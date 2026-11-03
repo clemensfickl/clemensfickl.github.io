@@ -1,6 +1,6 @@
 // Actions screen: records player actions and opponent errors and points for the current set.
 import { ACTIONS, recordPlayerAction, recordOppError, recordOppPoint, getEvents, getCurrentSet, setCurrentSet, undoLastAction } from './actions.js';
-import { getPlayers, swapWithLibero, exchangeWithBench } from './players.js';
+import { getPlayers, getLiberos, liberoOnCourt, swapWithLibero, exchangeWithBench } from './players.js';
 import { aggregate, playerCounts, winnersErrors, sumOpp } from './stats.js';
 import { replaySet, pointWinner, courtPosition, getTeamNames, ROLE_ORDER, FRONT_ROW } from './match.js';
 import { openSetupModal } from './setup-modal.js';
@@ -113,14 +113,14 @@ function renderActionSelect() {
 
 // Inactive rows (e.g. everyone but the server) keep only the substitution buttons.
 function renderPlayerRow(player, pos, active, setAgg, totalAgg) {
-    const players = getPlayers();
-    const libero = players.find(p => p.isLibero);
-    const isLiberoOnField = libero && libero.role !== 'libero';
+    const liberos = getLiberos();
+    const onCourt = liberoOnCourt();
+    const liberoLabel = n => (liberos.length > 1 ? `L${n}` : 'L');
 
     const row = el('div', 'onfield-row' + (active ? '' : ' inactive'));
     const name = el('div', 'onfield-name');
     if (pos) name.appendChild(el('span', 'pos-badge' + (FRONT_ROW.includes(pos) ? ' front' : ''), pos));
-    name.appendChild(document.createTextNode(player.isLibero ? `${player.name} (L)` : player.name));
+    name.appendChild(document.createTextNode(player.liberoNo ? `${player.name} (${liberoLabel(player.liberoNo)})` : player.name));
     row.appendChild(name);
 
     const controls = el('div', 'onfield-controls stats-controls');
@@ -135,14 +135,21 @@ function renderPlayerRow(player, pos, active, setAgg, totalAgg) {
     });
     row.appendChild(controls);
 
+    // Liberos are substituted with the libero buttons only; while one is on court, only that row can swap.
     const actionControls = el('div', 'onfield-controls action-controls');
-    actionControls.appendChild(button('Bench', 'btn btn-secondary exchange-btn', () => openExchangeModal(player.id)));
-    // While the libero is on court, only the libero can swap back.
-    if (!isLiberoOnField || player.isLibero) {
-        actionControls.appendChild(button('Libero', 'btn btn-secondary swap-libero', () => {
-            swapWithLibero(player.id);
-            notifyChange();
-        }));
+    if (!player.liberoNo) {
+        actionControls.appendChild(button('Bench', 'btn btn-secondary exchange-btn', () => openExchangeModal(player.id)));
+    }
+    if (!onCourt || onCourt === player) {
+        const liberoButtons = el('div', 'libero-buttons');
+        liberos.forEach(libero => {
+            const label = liberos.length > 1 ? `L${libero.liberoNo}` : 'Libero';
+            liberoButtons.appendChild(button(label, 'btn btn-secondary swap-libero', () => {
+                swapWithLibero(player.id, libero.liberoNo);
+                notifyChange();
+            }));
+        });
+        if (liberos.length > 0) actionControls.appendChild(liberoButtons);
     }
     row.appendChild(actionControls);
 

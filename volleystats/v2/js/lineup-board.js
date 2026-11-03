@@ -1,5 +1,5 @@
-// Court, libero slot and bench. Players move by dragging, or by tapping a player and then their new place.
-import { getPlayers, baseLineup, placePlayer, ROLES } from './players.js';
+// Court, libero slots and bench. Players move by dragging, or by tapping a player and then their new place.
+import { getPlayers, baseLineup, placePlayer, liberoSlot, ROLES } from './players.js';
 import { setAppliedLiberoTarget, courtPosition, ROLE_ORDER } from './match.js';
 import { el, notifyChange } from './dom.js';
 
@@ -32,10 +32,13 @@ export function renderLineupBoard(container, setterPos) {
         board.appendChild(court);
 
         const reserve = el('div', 'lineup-reserve');
-        const liberoSlot = slot('libero-slot', 'libero');
-        liberoSlot.appendChild(el('span', 'slot-title', 'Libero'));
-        liberoSlot.appendChild(lineup.libero ? chip(lineup.libero) : el('span', 'slot-empty', 'empty'));
-        reserve.appendChild(liberoSlot);
+        [1, 2].forEach(n => {
+            const role = liberoSlot(n);
+            const node = slot('libero-slot', role);
+            node.appendChild(el('span', 'slot-title', `Libero ${n}`));
+            node.appendChild(lineup[role] ? chip(lineup[role]) : el('span', 'slot-empty', 'empty'));
+            reserve.appendChild(node);
+        });
 
         const bench = slot('bench-slot', '');
         bench.appendChild(el('span', 'slot-title', 'Bench'));

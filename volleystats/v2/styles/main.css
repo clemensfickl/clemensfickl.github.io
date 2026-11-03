@@ -335,8 +335,24 @@ select {
     grid-area: action-controls;
     display: flex;
     flex-direction: column;
+    align-self: stretch;
+    justify-content: space-between;
     gap: 4px;
     width: 50px;
+}
+
+.action-controls:not(:has(.exchange-btn)) {
+    justify-content: flex-end;
+}
+
+.libero-buttons {
+    display: flex;
+    gap: 3px;
+}
+
+.libero-buttons .swap-libero {
+    flex: 1;
+    min-width: 0;
 }
 
 .exchange-btn,
@@ -605,7 +621,7 @@ select {
 
 .lineup-reserve {
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: auto auto 1fr;
     gap: 0.4rem;
     margin-top: 0.4rem;
 }
@@ -621,7 +637,7 @@ select {
 }
 
 .libero-slot {
-    min-width: 5.5rem;
+    min-width: 4.8rem;
     background: #ecfdf5;
 }
 
