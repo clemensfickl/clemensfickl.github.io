@@ -15,7 +15,47 @@ export function renderLineupBoard(container, setterPos) {
     const render = () => {
         container.innerHTML = '';
         const lineup = baseLineup();
+        const roleOf = Object.fromEntries(Object.entries(lineup).map(([role, p]) => [p.id, role]));
         const board = el('div', 'lineup-board');
+
+        // A slot takes the player (its holder moves to the player's old place); a bench player takes the
+        // place of a player who isn't on the bench.
+        const moveTo = (playerId, target) => {
+            const own = roleOf[playerId] || null;
+            const benchId = target.dataset.benchPlayer;
+            if (benchId) return benchId !== playerId && own ? () => place(benchId, own) : null;
+            const role = target.dataset.role || null;
+            return role !== own ? () => place(playerId, role) : null;
+        };
+        const slot = (className, role) => {
+            const node = el('div', `lineup-slot lineup-drop ${className}`);
+            node.dataset.role = role;
+            return node;
+        };
+        const chip = player => {
+            const node = el('div', 'player-chip' + (player.id === selectedId ? ' selected' : ''), player.name);
+            node.setAttribute('role', 'button');
+            node.dataset.source = player.id;
+            makeDraggable(node, {
+                scope: container,
+                targetSelector: '.lineup-drop',
+                accepts: target => !!moveTo(player.id, target),
+                onDrop: target => moveTo(player.id, target)()
+            });
+            return node;
+        };
+
+        // Tap a player, then where they go; tapping another player that can't take the place selects that one.
+        board.addEventListener('click', e => {
+            const source = e.target.closest('[data-source]');
+            const target = e.target.closest('.lineup-drop');
+            if (selectedId && target && source?.dataset.source !== selectedId) {
+                const run = moveTo(selectedId, target);
+                if (run) return run();
+            }
+            selectedId = source && source.dataset.source !== selectedId ? source.dataset.source : null;
+            render();
+        });
 
         board.appendChild(el('div', 'court-net', 'Net'));
         const court = el('div', 'court');
@@ -44,7 +84,12 @@ export function renderLineupBoard(container, setterPos) {
         bench.appendChild(el('span', 'slot-title', 'Bench'));
         const benchPlayers = getPlayers().filter(p => !p.role);
         const chips = el('div', 'bench-chips');
-        benchPlayers.forEach(p => chips.appendChild(chip(p)));
+        benchPlayers.forEach(p => {
+            const node = chip(p);
+            node.classList.add('lineup-drop');
+            node.dataset.benchPlayer = p.id;
+            chips.appendChild(node);
+        });
         if (benchPlayers.length === 0) chips.appendChild(el('span', 'slot-empty', 'nobody'));
         bench.appendChild(chips);
         reserve.appendChild(bench);
@@ -53,42 +98,20 @@ export function renderLineupBoard(container, setterPos) {
         board.appendChild(el('p', 'lineup-hint', selectedId
             ? 'Now tap where the player goes.'
             : 'Drag players to their spot, or tap a player and then the spot.'));
+        if (selectedId) {
+            board.querySelectorAll('.lineup-drop').forEach(target => {
+                if (moveTo(selectedId, target)) target.classList.add('drop-allowed');
+            });
+        }
         container.appendChild(board);
     };
 
     const place = (playerId, role) => {
         selectedId = null;
-        placePlayer(playerId, role || null);
+        placePlayer(playerId, role);
         setAppliedLiberoTarget(null);
         notifyChange();
         render();
-    };
-
-    const slot = (className, role) => {
-        const node = el('div', `lineup-slot ${className}`);
-        node.dataset.role = role;
-        node.addEventListener('click', () => {
-            if (selectedId) place(selectedId, role);
-        });
-        return node;
-    };
-
-    const chip = player => {
-        const node = el('div', 'player-chip' + (player.id === selectedId ? ' selected' : ''), player.name);
-        node.setAttribute('role', 'button');
-        node.addEventListener('click', e => {
-            e.stopPropagation();
-            if (!selectedId) selectedId = player.id;
-            else if (selectedId === player.id) selectedId = null;
-            else return place(selectedId, node.closest('.lineup-slot').dataset.role);
-            render();
-        });
-        makeDraggable(node, {
-            scope: container,
-            targetSelector: '.lineup-slot',
-            onDrop: drop => place(player.id, drop.dataset.role)
-        });
-        return node;
     };
 
     render();

@@ -584,11 +584,13 @@ select {
     font-style: italic;
 }
 
-.court-view .court-drop.drop-allowed {
+.court-view .court-drop.drop-allowed,
+.lineup-board .lineup-drop.drop-allowed {
     border: 2px dashed var(--primary);
 }
 
-.court-view .court-drop.drop-target {
+.court-view .court-drop.drop-target,
+.lineup-board .lineup-drop.drop-target {
     border-style: solid;
     background: var(--primary-soft);
 }
@@ -751,11 +753,6 @@ select {
     border: 2px solid transparent;
     border-radius: 8px;
     transition: border-color 0.1s, background-color 0.1s;
-}
-
-.lineup-slot.drop-target {
-    border-color: var(--primary);
-    background: var(--primary-soft);
 }
 
 .court-cell {
