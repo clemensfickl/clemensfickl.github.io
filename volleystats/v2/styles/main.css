@@ -1251,11 +1251,55 @@ select {
 }
 
 .point-desc {
+    display: flex;
     flex: 1;
+    align-items: center;
+    gap: 0.45rem;
     min-width: 0;
+}
+
+.point-actor {
+    flex: 0 1 auto;
+    max-width: 55%;
+    overflow: hidden;
+    padding: 0.05rem 0.45rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.point-actor.us {
+    background: var(--primary-soft);
+    color: var(--primary);
+}
+
+.point-actor.them {
+    border: 1px dashed #94a3b8;
+    background: #f8fafc;
+    color: #475569;
+}
+
+.point-action {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.point-action.positive {
+    color: #15803d;
+    font-weight: 600;
+}
+
+.point-action.negative {
+    color: #b91c1c;
+}
+
+.point-action.adjusted {
+    color: var(--muted);
+    font-style: italic;
 }
 
 .point-rot {

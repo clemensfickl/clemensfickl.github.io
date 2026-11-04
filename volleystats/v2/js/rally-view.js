@@ -44,18 +44,37 @@ function rateCell(won, total) {
     return td;
 }
 
+// How a rally-ending action reads in the point log, for whichever team made it.
+const POINT_LABELS = {
+    positive: { Serv: 'Ace', Atk: 'Attack point', Blk: 'Block point', Oth: 'Point' },
+    negative: { Serv: 'Serve error', Recv: 'Reception error', Atk: 'Attack error', Blk: 'Block error', Oth: 'Error' }
+};
+
+function pointLabel(action, outcome) {
+    return POINT_LABELS[outcome]?.[action] || `${action} ${OUTCOME_SYMBOLS[outcome]}`;
+}
+
+// Who decided the point (one of our players or the opponent) and with what.
 function describe(entry, playersById, names) {
     const e = entry.event;
     switch (e.type) {
         case 'player':
-            return `${playersById[e.playerId] || 'Unknown'} · ${e.action} ${OUTCOME_SYMBOLS[e.outcome]}`;
+            return { actor: playersById[e.playerId] || 'Unknown', side: 'us', outcome: e.outcome, text: pointLabel(e.action, e.outcome) };
         case 'oppPoint':
-            return `${names.opponent} · ${e.action} +`;
+            return { actor: names.opponent, side: 'them', outcome: 'positive', text: pointLabel(e.action, 'positive') };
         case 'oppError':
-            return `${names.opponent} · ${e.action} -`;
+            return { actor: names.opponent, side: 'them', outcome: 'negative', text: pointLabel(e.action, 'negative') };
         default:
-            return 'Adjusted';
+            return { actor: null, side: null, outcome: null, text: 'Score adjusted' };
     }
+}
+
+function renderDescription(entry, playersById, names) {
+    const { actor, side, outcome, text } = describe(entry, playersById, names);
+    const desc = el('span', 'point-desc');
+    if (actor) desc.appendChild(el('span', `point-actor ${side}`, actor));
+    desc.appendChild(el('span', 'point-action' + (outcome ? ` ${outcome}` : ' adjusted'), text));
+    return desc;
 }
 
 export function buildPointLog(sets) {
@@ -86,7 +105,7 @@ export function buildPointLog(sets) {
         state.log.forEach(entry => {
             const li = el('li', `point-item ${entry.winner}`);
             li.appendChild(el('span', 'point-score', `${entry.us}:${entry.them}`));
-            li.appendChild(el('span', 'point-desc', describe(entry, playersById, names)));
+            li.appendChild(renderDescription(entry, playersById, names));
             if (entry.setterPos) li.appendChild(el('span', 'point-rot', `R${entry.setterPos}`));
             list.appendChild(li);
         });
