@@ -3,7 +3,7 @@ import { load, save } from './storage.js';
 
 // 'list' (by rotation) or 'court' (where players play).
 export function getActionsLayout() {
-    return load('layout', 'list') === 'court' ? 'court' : 'list';
+    return load('layout', 'court') === 'list' ? 'list' : 'court';
 }
 
 export function setActionsLayout(layout) {
