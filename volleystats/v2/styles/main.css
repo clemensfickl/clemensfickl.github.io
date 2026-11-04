@@ -332,6 +332,11 @@ select {
     visibility: hidden;
 }
 
+.onfield-row.libero {
+    border-color: #34d399;
+    background: #d1fae5;
+}
+
 .big-btn.positive { background: var(--positive); }
 .big-btn.neutral { background: var(--neutral); }
 .big-btn.negative { background: var(--negative); }
@@ -467,12 +472,17 @@ select {
     background: var(--surface);
 }
 
-.court-player-cell.libero {
-    background: #ecfdf5;
-}
-
 .court-player-cell.inactive {
     background: #fff7ed;
+}
+
+.court-player-cell.libero {
+    border-color: #34d399;
+    background: #d1fae5;
+}
+
+.court-player-cell.libero .cp-role {
+    color: #047857;
 }
 
 .court-player-cell.inactive .cp-name,
@@ -572,7 +582,7 @@ select {
 
 .libero-reserve {
     flex: 0 0 5.2rem;
-    background: #ecfdf5;
+    background: #d1fae5;
 }
 
 .bench-reserve {
@@ -804,7 +814,12 @@ select {
 
 .libero-slot {
     min-width: 4.8rem;
-    background: #ecfdf5;
+    background: #d1fae5;
+}
+
+.libero-slot .slot-title,
+.libero-reserve .slot-title {
+    color: #047857;
 }
 
 .slot-title {

@@ -231,7 +231,10 @@ function substitution(player, target, backRow) {
 
 // Inactive rows (e.g. everyone but the server) keep only the substitution buttons.
 function renderPlayerRow(player, pos, active, setAgg, totalAgg) {
-    const row = el('div', 'onfield-row' + (active ? '' : ' inactive'));
+    let className = 'onfield-row';
+    if (!active) className += ' inactive';
+    if (player.liberoNo) className += ' libero';
+    const row = el('div', className);
     const name = el('div', 'onfield-name');
     if (pos) name.appendChild(el('span', 'pos-badge' + (FRONT_ROW.includes(pos) ? ' front' : ''), pos));
     name.appendChild(document.createTextNode(player.liberoNo ? `${player.name} (${liberoLabel(player.liberoNo)})` : player.name));
