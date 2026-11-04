@@ -173,3 +173,8 @@ export function getMatchScore(events = getEvents()) {
 export function isMatchOver(score) {
     return score.us >= 3 || score.them >= 3;
 }
+
+// Nothing more is recorded in a set once it or the match is decided; Undo still works.
+export function isSetInPlay(state, set) {
+    return !isSetOver(state, set) && !isMatchOver(getMatchScore());
+}

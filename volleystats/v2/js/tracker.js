@@ -2,7 +2,7 @@
 import { ACTIONS, recordPlayerAction, recordOppError, recordOppPoint, getEvents, getCurrentSet, setCurrentSet, undoLastAction } from './actions.js';
 import { getPlayers, getLiberos, liberoOnCourt, liberoSlot, swapWithLibero, exchangeWithBench } from './players.js';
 import { aggregate, playerCounts, winnersErrors, sumOpp } from './stats.js';
-import { replaySet, pointWinner, courtPosition, getTeamNames, ROLE_ORDER, FRONT_ROW } from './match.js';
+import { replaySet, pointWinner, courtPosition, getTeamNames, isSetOver, isSetInPlay, getMatchScore, isMatchOver, ROLE_ORDER, FRONT_ROW } from './match.js';
 import { openSetupModal } from './setup-modal.js';
 import { recordAndCheckSetEnd, openAdjustModal } from './set-flow.js';
 import { el, button, notifyChange } from './dom.js';
@@ -46,10 +46,11 @@ function blockedActions(serving) {
 export function renderTracker() {
     const set = getCurrentSet();
     const state = replaySet(set);
-    const blocked = blockedActions(state.serving);
-    if ((!selectedAction || blocked.us.includes(selectedAction)) && state.serving) selectedAction = actionForServe(state);
+    const inPlay = isSetInPlay(state, set);
+    const blocked = inPlay ? blockedActions(state.serving) : { us: ACTIONS, them: Object.keys(OPP_ACTIONS) };
+    if (inPlay && (!selectedAction || blocked.us.includes(selectedAction)) && state.serving) selectedAction = actionForServe(state);
 
-    renderToolbar(set);
+    renderToolbar(set, inPlay);
 
     const events = getEvents();
     const setAgg = aggregate(events, set);
@@ -58,12 +59,13 @@ export function renderTracker() {
     const container = document.getElementById('action-buttons');
     container.innerHTML = '';
     container.appendChild(renderActionSelect(blocked.us));
-    if (!state.hasSetup) container.appendChild(renderSetupBanner(set));
+    if (!inPlay) container.appendChild(renderSetOverBanner(set, state));
+    else if (!state.hasSetup) container.appendChild(renderSetupBanner(set));
 
     const list = el('div', 'onfield-list');
     const allowed = POSITION_FILTER[selectedAction];
     const players = courtPlayers(state).map(({ player, pos }) => ({
-        player, pos, active: !pos || !allowed || allowed.includes(pos)
+        player, pos, active: inPlay && (!pos || !allowed || allowed.includes(pos))
     }));
     // The court needs the rotation; until the lineup is set the list is shown.
     if (getActionsLayout() === 'court' && state.setterPos) {
@@ -129,15 +131,33 @@ function renderSetupBanner(set) {
     return banner;
 }
 
+function renderSetOverBanner(set, state) {
+    const banner = el('div', 'setup-banner set-over-banner');
+    const matchOver = isMatchOver(getMatchScore());
+    const text = isSetOver(state, set)
+        ? `Set ${set} is over (${state.us}:${state.them}). Use Undo to correct it.`
+        : 'The match is over.';
+    banner.appendChild(el('span', null, text));
+    if (!matchOver && set < 5) {
+        banner.appendChild(button(`Go to set ${set + 1}`, 'btn btn-primary', () => {
+            setCurrentSet(set + 1);
+            resetAction();
+            notifyChange();
+        }));
+    }
+    return banner;
+}
+
 function renderActionSelect(blocked) {
     const wrap = el('div', 'action-select-wrap');
     ACTIONS.forEach(action => {
-        const className = 'action-select-btn' + (selectedAction === action ? ' active' : '');
+        const disabled = blocked.includes(action);
+        const className = 'action-select-btn' + (selectedAction === action && !disabled ? ' active' : '');
         const btn = button(action, className, () => {
             selectedAction = action;
             notifyChange();
         });
-        btn.disabled = blocked.includes(action);
+        btn.disabled = disabled;
         wrap.appendChild(btn);
     });
     return wrap;
@@ -290,12 +310,14 @@ function opponentButton(symbol, outcome, recordFn) {
     });
 }
 
-function renderToolbar(set) {
+function renderToolbar(set, inPlay) {
     const container = document.getElementById('set-selector-container');
     container.innerHTML = '';
     container.appendChild(renderSetSelector());
     container.appendChild(button('Lineup', 'btn btn-secondary', () => openSetup(set)));
-    container.appendChild(button('Adjust', 'btn btn-secondary', () => openAdjustModal(resetAction)));
+    const adjust = button('Adjust', 'btn btn-secondary', () => openAdjustModal(resetAction));
+    adjust.disabled = !inPlay;
+    container.appendChild(adjust);
 }
 
 function renderSetSelector() {

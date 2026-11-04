@@ -32,7 +32,7 @@ function openSetEndModal(set, state, onNextSet) {
         if (matchOver) {
             btnRow.appendChild(button('OK', 'btn btn-primary', close));
         } else {
-            btnRow.appendChild(button('Keep editing', 'btn', close));
+            btnRow.appendChild(button('Close', 'btn', close));
             btnRow.appendChild(button(`Start set ${set + 1}`, 'btn btn-primary', () => {
                 setCurrentSet(set + 1);
                 close();

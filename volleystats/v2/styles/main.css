@@ -118,6 +118,12 @@ button:active {
     color: var(--text);
 }
 
+.btn:disabled {
+    color: #94a3b8;
+    cursor: not-allowed;
+    transform: none;
+}
+
 .btn-danger {
     background: var(--negative);
     border-color: var(--negative);
@@ -711,6 +717,11 @@ select {
 .pos-badge.front {
     background: var(--primary-soft);
     color: #1d4ed8;
+}
+
+.setup-banner .btn {
+    flex: none;
+    white-space: nowrap;
 }
 
 .setup-banner {
