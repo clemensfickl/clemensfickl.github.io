@@ -1,6 +1,6 @@
 // Scoreboard shown below the tabs on every screen: one row per team with the points of every set.
 import { getCurrentSet, getEvents } from './actions.js';
-import { replaySet, getTeamNames, isSetOver } from './match.js';
+import { replaySet, getTeamNames, isSetOver, getMatchScore, isMatchOver } from './match.js';
 import { setsWithEvents } from './stats.js';
 import { el } from './dom.js';
 
@@ -13,10 +13,14 @@ export function renderScoreboard() {
     const sets = [];
     for (let set = 1; set <= lastSet; set++) sets.push({ set, state: set === current ? state : replaySet(set) });
 
+    // Nobody serves once the shown set is finished or the match is decided.
+    const inPlay = !isSetOver(state, current) && !isMatchOver(getMatchScore());
+    const serving = inPlay ? state.serving : null;
+
     board.innerHTML = '';
     board.style.setProperty('--sb-sets', sets.length);
-    board.appendChild(teamRow(names.team, 'us', state.serving === 'us', sets, current));
-    board.appendChild(teamRow(names.opponent, 'them', state.serving === 'them', sets, current));
+    board.appendChild(teamRow(names.team, 'us', serving === 'us', sets, current));
+    board.appendChild(teamRow(names.opponent, 'them', serving === 'them', sets, current));
 
     const meta = el('div', 'sb-meta');
     meta.appendChild(el('span', null, `Set ${current}`));
