@@ -10,7 +10,7 @@
 <body>
     <header class="app-header">
         <nav id="main-nav" class="main-nav">
-            <button id="nav-registration" data-screen="registration" class="btn">Registration</button>
+            <button id="nav-registration" data-screen="registration" class="btn">Configuration</button>
             <button id="nav-actions" data-screen="actions" class="btn">Actions</button>
             <button id="nav-statistics" data-screen="statistics" class="btn">Statistics</button>
         </nav>
@@ -24,8 +24,6 @@
                 <input type="text" id="team-name" placeholder="Us">
                 <label for="opponent-name">Opponent</label>
                 <input type="text" id="opponent-name" placeholder="Opponent">
-                <span class="setting-label">Player view</span>
-                <div id="layout-setting" class="segmented" role="group" aria-label="Player view"></div>
             </div>
         </section>
         <section id="registration" class="card">
@@ -37,9 +35,15 @@
             <div id="v1-import" class="import-offer"></div>
             <ul id="player-list"></ul>
         </section>
-        <section id="position-assignment" class="card">
-            <h2>Lineup</h2>
-            <div id="positions"></div>
+        <section id="settings" class="card">
+            <h2>Settings</h2>
+            <div class="settings-grid">
+                <span class="setting-label">Player view</span>
+                <div id="layout-setting" class="segmented" role="group" aria-label="Player view"></div>
+                <span class="setting-label">Auto libero</span>
+                <div id="auto-libero-setting" class="segmented" role="group" aria-label="Auto libero"></div>
+                <p class="setting-hint">Brings the libero in for the middle blocker in the back row.</p>
+            </div>
         </section>
         <p id="version-hint" class="version-hint">
             Prefer the old version? Open <a href="../">VolleyStats v1</a>.

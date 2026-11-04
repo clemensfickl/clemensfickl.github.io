@@ -984,7 +984,8 @@ select {
 }
 
 /* Match setup */
-.team-names {
+.team-names,
+.settings-grid {
     display: grid;
     grid-template-columns: 6.5rem 1fr;
     align-items: center;
@@ -992,13 +993,20 @@ select {
 }
 
 .team-names label,
-.team-names .setting-label {
+.settings-grid .setting-label {
     color: var(--muted);
     font-size: 0.9rem;
 }
 
-.team-names .segmented-btn {
+.settings-grid .segmented-btn {
     padding: 0.35rem 0;
+}
+
+.setting-hint {
+    grid-column: 2;
+    margin: -0.2rem 0 0;
+    color: var(--muted);
+    font-size: 0.75rem;
 }
 
 .team-names input {

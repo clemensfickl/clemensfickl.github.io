@@ -1,9 +1,7 @@
-// Registration screen: team names, roster and role assignment.
+// Configuration screen: team names, roster and settings. The lineup is set per set on the Actions screen.
 import { addPlayer, removePlayer, getPlayers, countImportableV1Players, importV1Players } from './players.js';
-import { getRawTeamNames, setTeamNames, getSetSetup } from './match.js';
-import { getCurrentSet } from './actions.js';
-import { renderLineupBoard } from './lineup-board.js';
-import { getActionsLayout, setActionsLayout } from './settings.js';
+import { getRawTeamNames, setTeamNames, setAppliedLiberoTarget } from './match.js';
+import { getActionsLayout, setActionsLayout, getAutoLibero, setAutoLibero } from './settings.js';
 import { renderScoreboard } from './scoreboard.js';
 import { el, button, notifyChange } from './dom.js';
 
@@ -36,18 +34,25 @@ export function renderRegistration() {
     const names = getRawTeamNames();
     if (document.activeElement !== teamInput()) teamInput().value = names.team;
     if (document.activeElement !== opponentInput()) opponentInput().value = names.opponent;
-    renderLayoutSetting();
     renderPlayerList();
-    renderLineup();
+    renderSettings();
 }
 
-function renderLayoutSetting() {
-    const container = document.getElementById('layout-setting');
+function renderSettings() {
+    renderSegmented('layout-setting', [['list', 'List'], ['court', 'Court']], getActionsLayout(), setActionsLayout);
+    renderSegmented('auto-libero-setting', [[true, 'On'], [false, 'Off']], getAutoLibero(), enabled => {
+        setAutoLibero(enabled);
+        // Switching it on applies the coverage for the current rotation right away.
+        if (enabled) setAppliedLiberoTarget(null);
+    });
+}
+
+function renderSegmented(id, options, current, onSelect) {
+    const container = document.getElementById(id);
     container.innerHTML = '';
-    const current = getActionsLayout();
-    [['list', 'List'], ['court', 'Court']].forEach(([layout, label]) => {
-        container.appendChild(button(label, 'segmented-btn' + (layout === current ? ' active' : ''), () => {
-            setActionsLayout(layout);
+    options.forEach(([value, label]) => {
+        container.appendChild(button(label, 'segmented-btn' + (value === current ? ' active' : ''), () => {
+            onSelect(value);
             notifyChange();
         }));
     });
@@ -79,10 +84,4 @@ function renderPlayerList() {
         li.appendChild(el('span', 'player-name', player.name));
         list.appendChild(li);
     });
-}
-
-// Shown in the starting rotation of the current set, or rotation 1 before it is set up.
-function renderLineup() {
-    const setup = getSetSetup(getCurrentSet());
-    renderLineupBoard(document.getElementById('positions'), setup ? setup.setterStart : 1);
 }

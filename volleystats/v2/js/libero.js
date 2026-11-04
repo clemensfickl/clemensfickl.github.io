@@ -2,8 +2,10 @@
 import { getCurrentSet } from './actions.js';
 import { replaySet, liberoTarget, getAppliedLiberoTarget, setAppliedLiberoTarget } from './match.js';
 import { setLiberoCoverage } from './players.js';
+import { getAutoLibero } from './settings.js';
 
 export function syncLibero() {
+    if (!getAutoLibero()) return;
     const set = getCurrentSet();
     const state = replaySet(set);
     if (!state.setterPos) return;
