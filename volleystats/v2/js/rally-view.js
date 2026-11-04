@@ -81,7 +81,9 @@ function describe(entry, playersById, names) {
 function renderDescription(entry, playersById, names) {
     const { actor, side, outcome, text } = describe(entry, playersById, names);
     const desc = el('span', 'point-desc');
-    if (actor) desc.appendChild(el('span', `point-actor ${side}`, actor));
+    const actorCol = el('span', 'point-actor-col');
+    if (actor) actorCol.appendChild(el('span', `point-actor ${side}`, actor));
+    desc.appendChild(actorCol);
     desc.appendChild(el('span', 'point-action' + (outcome ? ` ${outcome}` : ' adjusted'), text));
     return desc;
 }

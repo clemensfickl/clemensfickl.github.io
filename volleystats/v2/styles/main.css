@@ -1274,9 +1274,15 @@ select {
     min-width: 0;
 }
 
+.point-actor-col {
+    display: flex;
+    flex: none;
+    width: 7rem;
+    min-width: 0;
+}
+
 .point-actor {
-    flex: 0 1 auto;
-    max-width: 55%;
+    max-width: 100%;
     overflow: hidden;
     padding: 0.05rem 0.45rem;
     border: 1px solid transparent;
