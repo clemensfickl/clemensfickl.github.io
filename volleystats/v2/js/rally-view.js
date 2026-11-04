@@ -23,19 +23,28 @@ export function buildRotationTable(sets) {
     table.appendChild(thead);
 
     const tbody = el('tbody');
+    const total = { won: 0, lost: 0, recvWon: 0, recvRallies: 0, servWon: 0, servRallies: 0 };
     Object.entries(rows).forEach(([rotation, r]) => {
         if (r.won + r.lost === 0) return;
-        const tr = el('tr');
-        tr.appendChild(el('td', 'player-name-col', `R${rotation}`));
-        tr.appendChild(el('td', 'stat-positive', r.won));
-        tr.appendChild(el('td', 'stat-negative', r.lost));
-        tr.appendChild(rateCell(r.recvWon, r.recvRallies));
-        tr.appendChild(rateCell(r.servWon, r.servRallies));
-        tbody.appendChild(tr);
+        tbody.appendChild(rotationRow(`R${rotation}`, r));
+        Object.keys(total).forEach(key => { total[key] += r[key]; });
     });
     if (!tbody.children.length) return null;
     table.appendChild(tbody);
+    const tfoot = el('tfoot');
+    tfoot.appendChild(rotationRow('Overall', total));
+    table.appendChild(tfoot);
     return table;
+}
+
+function rotationRow(label, r) {
+    const tr = el('tr');
+    tr.appendChild(el('td', 'player-name-col', label));
+    tr.appendChild(el('td', 'stat-positive', r.won));
+    tr.appendChild(el('td', 'stat-negative', r.lost));
+    tr.appendChild(rateCell(r.recvWon, r.recvRallies));
+    tr.appendChild(rateCell(r.servWon, r.servRallies));
+    return tr;
 }
 
 function rateCell(won, total) {

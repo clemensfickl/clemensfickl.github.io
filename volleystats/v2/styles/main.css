@@ -1152,6 +1152,11 @@ select {
     padding: 0.5rem;
 }
 
+.rotation-table tfoot td {
+    border-top: 2px solid var(--border);
+    font-weight: 700;
+}
+
 .rate-cell {
     font-weight: 600;
 }
