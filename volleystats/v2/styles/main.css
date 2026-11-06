@@ -10,6 +10,9 @@
     --neutral: #f59e0b;
     --negative: #dc2626;
     --negative-soft: #fef2f2;
+    --libero: #a78bfa;
+    --libero-soft: #ede9fe;
+    --libero-text: #6d28d9;
     --radius: 12px;
     --shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.08);
 }
@@ -339,8 +342,8 @@ select {
 }
 
 .onfield-row.libero {
-    border-color: #34d399;
-    background: #d1fae5;
+    border-color: var(--libero);
+    background: var(--libero-soft);
 }
 
 .big-btn.positive { background: var(--positive); }
@@ -483,12 +486,12 @@ select {
 }
 
 .court-player-cell.libero {
-    border-color: #34d399;
-    background: #d1fae5;
+    border-color: var(--libero);
+    background: var(--libero-soft);
 }
 
 .court-player-cell.libero .cp-role {
-    color: #047857;
+    color: var(--libero-text);
 }
 
 .court-player-cell.inactive .cp-name,
@@ -604,7 +607,7 @@ select {
 
 .libero-reserve {
     flex: 0 0 5.2rem;
-    background: #d1fae5;
+    background: var(--libero-soft);
 }
 
 .bench-reserve {
@@ -841,12 +844,12 @@ select {
 
 .libero-slot {
     min-width: 4.8rem;
-    background: #d1fae5;
+    background: var(--libero-soft);
 }
 
 .libero-slot .slot-title,
 .libero-reserve .slot-title {
-    color: #047857;
+    color: var(--libero-text);
 }
 
 .slot-title {
