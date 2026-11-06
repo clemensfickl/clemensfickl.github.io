@@ -1072,6 +1072,10 @@ select {
     margin-top: 1rem;
 }
 
+.modal-buttons .modal-undo {
+    margin-right: auto;
+}
+
 /* Statistics */
 .table-card {
     padding: 0;

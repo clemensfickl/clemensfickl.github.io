@@ -1,10 +1,11 @@
 // Score corrections and the end-of-set / end-of-match prompts.
-import { getCurrentSet, setCurrentSet, recordManualPoint, recordRotate, recordSwitchServe } from './actions.js';
+import { getCurrentSet, setCurrentSet, recordManualPoint, recordRotate, recordSwitchServe, undoLastAction } from './actions.js';
 import { replaySet, isSetOver, getMatchScore, isMatchOver, getTeamNames } from './match.js';
 import { el, button, notifyChange } from './dom.js';
 import { openModal } from './modal.js';
 
 // Runs `recordFn` and opens the set-end prompt if that event decided the set. Returns whether it did.
+// `onNextSet` resets the tracker's selected action, after moving on or after undoing the deciding point.
 export function recordAndCheckSetEnd(recordFn, onNextSet) {
     const set = getCurrentSet();
     const wasOver = isSetOver(replaySet(set), set);
@@ -29,6 +30,12 @@ function openSetEndModal(set, state, onNextSet) {
         modal.appendChild(el('p', 'modal-text muted', `Sets: ${names.team} ${sets.us}–${sets.them} ${names.opponent}`));
 
         const btnRow = el('div', 'modal-buttons');
+        btnRow.appendChild(button('Undo', 'btn btn-secondary modal-undo', () => {
+            undoLastAction();
+            close();
+            onNextSet();
+            notifyChange();
+        }));
         if (matchOver) {
             btnRow.appendChild(button('OK', 'btn btn-primary', close));
         } else {
