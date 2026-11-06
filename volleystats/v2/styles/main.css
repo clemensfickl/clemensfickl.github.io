@@ -1158,6 +1158,14 @@ select {
     padding: 0.35rem 0;
 }
 
+.setting-row {
+    display: contents;
+}
+
+.setting-row[hidden] {
+    display: none;
+}
+
 .setting-hint {
     grid-column: 2;
     margin: -0.2rem 0 0;

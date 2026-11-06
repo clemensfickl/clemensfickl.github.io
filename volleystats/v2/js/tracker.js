@@ -12,7 +12,7 @@ import { recordAndCheckSetEnd, openAdjustModal } from './set-flow.js';
 import { el, button, notifyChange } from './dom.js';
 import { openModal } from './modal.js';
 import { renderCourt } from './court-view.js';
-import { getActionsLayout, getR1OppositeOnFour, setR1OppositeOnFour } from './settings.js';
+import { getActionsLayout, getCourtPositions, getR1OppositeOnFour, setR1OppositeOnFour } from './settings.js';
 import { courtOrientation } from './court-layout.js';
 
 const OUTCOME_SYMBOLS = { positive: '+', neutral: '~', negative: '-' };
@@ -103,10 +103,12 @@ export function renderTracker() {
     // The court needs the rotation; until the lineup is set the list is shown.
     if (getActionsLayout() !== 'list' && state.setterPos) {
         const backRow = player => !FRONT_ROW.includes(courtPosition(player.role, state.setterPos));
-        const r1Reception = inPlay && rotationOf(state) === 1 && state.serving === 'them';
+        const byRotation = getCourtPositions() === 'rotation';
+        const r1Reception = !byRotation && inPlay && rotationOf(state) === 1 && state.serving === 'them';
         list.appendChild(renderCourt(players, reservePlayers(), {
             selectedAction,
             orientation: courtOrientation(set, state.ourSide),
+            byRotation,
             unswitchedFront: r1Reception && getR1OppositeOnFour(),
             belowCourt: r1Reception ? renderR1Toggle() : null,
             record: recordOutcome,

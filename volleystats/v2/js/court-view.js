@@ -1,4 +1,4 @@
-// Court layout for our team: players are shown where they play after switching, not by rotation.
+// Court layout for our team: players are shown where they play after switching, or on their rotational positions.
 // Substitutions: drag a player onto the court, a libero slot or the bench, or tap the player and then the target.
 import { FRONT_ROW } from './match.js';
 import { el, button } from './dom.js';
@@ -32,6 +32,7 @@ function playingSpot(role, pos, unswitchedFront) {
 // `players`: [{ player, pos, active }] with the rotational position.
 // `ctx.substitution(player, target)` returns the substitution for a drop, or null if it isn't allowed;
 // a target is { player }, { libero: n } or { bench: true }. `ctx.orientation` as in court-layout.js.
+// `ctx.byRotation`: players stay on their rotational positions instead of where they play.
 // `ctx.unswitchedFront`: the front outside and opposite stay on their rotational positions. `ctx.belowCourt`: an
 // optional element shown between the court and the reserve.
 export function renderCourt(players, reserve, ctx) {
@@ -85,7 +86,8 @@ export function renderCourt(players, reserve, ctx) {
 
     const bySpot = {};
     players.forEach(entry => {
-        bySpot[playingSpot(entry.player.role, entry.pos, ctx.unswitchedFront)] = entry;
+        const spot = ctx.byRotation ? entry.pos : playingSpot(entry.player.role, entry.pos, ctx.unswitchedFront);
+        bySpot[spot] = entry;
     });
     const court = el('div', 'court-grid');
     spotOrder(ctx.orientation).forEach(spot => {

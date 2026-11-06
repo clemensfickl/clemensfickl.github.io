@@ -13,6 +13,15 @@ export function setActionsLayout(layout) {
     save('layout', layout);
 }
 
+// Court views: 'playing' shows players where they stand after switching, 'rotation' on their rotational position.
+export function getCourtPositions() {
+    return load('courtPositions', 'playing') === 'rotation' ? 'rotation' : 'playing';
+}
+
+export function setCourtPositions(positions) {
+    save('courtPositions', positions);
+}
+
 // Receiving in rotation 1, whether the opposite stays on 4 (and the front outside on 2) instead of switching.
 // Changed on the court as well as on the Configuration screen, and remembered for the next time.
 export function getR1OppositeOnFour() {
