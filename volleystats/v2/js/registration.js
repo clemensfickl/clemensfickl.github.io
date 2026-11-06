@@ -1,7 +1,7 @@
 // Configuration screen: team names, roster and settings. The lineup is set per set on the Actions screen.
 import { addPlayer, removePlayer, getPlayers, countImportableV1Players, importV1Players } from './players.js';
 import { getRawTeamNames, setTeamNames, setAppliedLiberoTarget } from './match.js';
-import { getActionsLayout, setActionsLayout, getAutoLibero, setAutoLibero } from './settings.js';
+import { getActionsLayout, setActionsLayout, getAutoLibero, setAutoLibero, getR1OppositeOnFour, setR1OppositeOnFour } from './settings.js';
 import { renderScoreboard } from './scoreboard.js';
 import { el, button, notifyChange } from './dom.js';
 
@@ -40,6 +40,7 @@ export function renderRegistration() {
 
 function renderSettings() {
     renderSegmented('layout-setting', [['list', 'List'], ['court', 'Baseline'], ['side', 'Sideline']], getActionsLayout(), setActionsLayout);
+    renderSegmented('r1-setting', [[true, 'OPP on 4'], [false, 'OPP on 2']], getR1OppositeOnFour(), setR1OppositeOnFour);
     renderSegmented('auto-libero-setting', [[true, 'On'], [false, 'Off']], getAutoLibero(), enabled => {
         setAutoLibero(enabled);
         // Switching it on applies the coverage for the current rotation right away.

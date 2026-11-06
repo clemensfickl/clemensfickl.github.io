@@ -18,18 +18,21 @@ const SHORT = {
 };
 // Outside left, middle in the middle, setter/opposite right; in the back the middle (libero) plays 5.
 const FRONT_SPOTS = { outside: 4, middle: 3, right: 2 };
+const UNSWITCHED_FRONT_SPOTS = { outside: 2, middle: 3, right: 4 };
 const BACK_SPOTS = { middle: 5, outside: 6, right: 1 };
 const DROP = '.court-drop';
 
 let selectedId = null;
 
-function playingSpot(role, pos) {
-    return (FRONT_ROW.includes(pos) ? FRONT_SPOTS : BACK_SPOTS)[KIND[role]];
+function playingSpot(role, pos, unswitchedFront) {
+    const front = unswitchedFront ? UNSWITCHED_FRONT_SPOTS : FRONT_SPOTS;
+    return (FRONT_ROW.includes(pos) ? front : BACK_SPOTS)[KIND[role]];
 }
 
 // `players`: [{ player, pos, active }] with the rotational position.
 // `ctx.substitution(player, target)` returns the substitution for a drop, or null if it isn't allowed;
 // a target is { player }, { libero: n } or { bench: true }. `ctx.orientation` as in court-layout.js.
+// `ctx.unswitchedFront`: the front outside and opposite stay on their rotational positions.
 export function renderCourt(players, reserve, ctx) {
     const byId = Object.fromEntries([...players.map(e => e.player), ...reserve.bench, ...reserve.liberos.map(s => s.player)]
         .filter(Boolean).map(p => [p.id, p]));
@@ -81,7 +84,7 @@ export function renderCourt(players, reserve, ctx) {
 
     const bySpot = {};
     players.forEach(entry => {
-        bySpot[playingSpot(entry.player.role, entry.pos)] = entry;
+        bySpot[playingSpot(entry.player.role, entry.pos, ctx.unswitchedFront)] = entry;
     });
     const court = el('div', 'court-grid');
     spotOrder(ctx.orientation).forEach(spot => {

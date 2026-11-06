@@ -788,6 +788,27 @@ select {
     white-space: nowrap;
 }
 
+.r1-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.r1-toggle .segmented {
+    padding: 0.15rem;
+    border-radius: 8px;
+}
+
+.r1-toggle .segmented-btn {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.85rem;
+}
+
 .setup-banner {
     display: flex;
     align-items: center;

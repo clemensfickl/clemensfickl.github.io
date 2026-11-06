@@ -6,13 +6,13 @@ import { openHistoryModal } from './history-modal.js';
 import { icon } from './icons.js';
 import { getPlayers, getLiberos, liberoOnCourt, liberoSlot, swapWithLibero, exchangeWithBench } from './players.js';
 import { aggregate, playerCounts, winnersErrors, sumOpp } from './stats.js';
-import { replaySet, pointWinner, courtPosition, playingRole, getTeamNames, isSetOver, isSetInPlay, getMatchScore, isMatchOver, ROLE_ORDER, FRONT_ROW } from './match.js';
+import { replaySet, pointWinner, courtPosition, playingRole, rotationOf, getTeamNames, isSetOver, isSetInPlay, getMatchScore, isMatchOver, ROLE_ORDER, FRONT_ROW } from './match.js';
 import { openSetupModal } from './setup-modal.js';
 import { recordAndCheckSetEnd, openAdjustModal } from './set-flow.js';
 import { el, button, notifyChange } from './dom.js';
 import { openModal } from './modal.js';
 import { renderCourt } from './court-view.js';
-import { getActionsLayout } from './settings.js';
+import { getActionsLayout, getR1OppositeOnFour, setR1OppositeOnFour } from './settings.js';
 import { courtOrientation } from './court-layout.js';
 
 const OUTCOME_SYMBOLS = { positive: '+', neutral: '~', negative: '-' };
@@ -103,9 +103,12 @@ export function renderTracker() {
     // The court needs the rotation; until the lineup is set the list is shown.
     if (getActionsLayout() !== 'list' && state.setterPos) {
         const backRow = player => !FRONT_ROW.includes(courtPosition(player.role, state.setterPos));
+        const r1Reception = inPlay && rotationOf(state) === 1 && state.serving === 'them';
+        if (r1Reception) list.appendChild(renderR1Toggle());
         list.appendChild(renderCourt(players, reservePlayers(), {
             selectedAction,
             orientation: courtOrientation(set, state.ourSide),
+            unswitchedFront: r1Reception && getR1OppositeOnFour(),
             record: recordOutcome,
             substitution: (player, target) => {
                 const run = substitution(player, target, { backRow, inPlay });
@@ -165,6 +168,21 @@ function selectNextAction(action) {
     } else if (LEADS_TO_ATTACK.includes(action)) {
         selectedAction = 'Atk';
     }
+}
+
+// Receiving in rotation 1 the opposite often stays on 4 instead of running over to 2; the choice is remembered.
+function renderR1Toggle() {
+    const row = el('div', 'r1-toggle');
+    row.appendChild(el('span', 'r1-toggle-label', 'R1 reception'));
+    const toggle = el('div', 'segmented');
+    [[true, 'OPP on 4'], [false, 'OPP on 2']].forEach(([onFour, label]) => {
+        toggle.appendChild(button(label, 'segmented-btn' + (getR1OppositeOnFour() === onFour ? ' active' : ''), () => {
+            setR1OppositeOnFour(onFour);
+            notifyChange();
+        }));
+    });
+    row.appendChild(toggle);
+    return row;
 }
 
 function renderSetupBanner(set) {
