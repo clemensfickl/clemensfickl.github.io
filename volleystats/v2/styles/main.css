@@ -516,6 +516,10 @@ select {
     color: #c2410c;
 }
 
+.court-player-cell .cp-role.setter {
+    color: var(--primary);
+}
+
 .cp-role.cp-serve {
     flex: none;
     padding: 0 0.3rem;
