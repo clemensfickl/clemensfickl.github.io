@@ -53,14 +53,16 @@ function rateCell(won, total) {
     return td;
 }
 
-// How a rally-ending action reads in the point log, for whichever team made it.
-const POINT_LABELS = {
-    positive: { Serv: 'Ace', Atk: 'Attack point', Blk: 'Block point', Oth: 'Point' },
+// How an action reads in the point log and history, for whichever team made it. A good reception and every ~
+// keep the rally going.
+const ACTION_LABELS = {
+    positive: { Serv: 'Ace', Recv: 'Good reception', Atk: 'Attack point', Blk: 'Block point', Oth: 'Point' },
+    neutral: { Serv: 'Serve in play', Recv: 'Reception', Atk: 'Attack defended', Blk: 'Block touch', Oth: 'Ball kept in play' },
     negative: { Serv: 'Serve error', Recv: 'Reception error', Atk: 'Attack error', Blk: 'Block error', Oth: 'Error' }
 };
 
-function pointLabel(action, outcome) {
-    return POINT_LABELS[outcome]?.[action] || `${action} ${OUTCOME_SYMBOLS[outcome]}`;
+export function actionLabel(action, outcome) {
+    return ACTION_LABELS[outcome]?.[action] || `${action} ${OUTCOME_SYMBOLS[outcome]}`;
 }
 
 // Who made the action (one of our players or the opponent) and what it was. The outcome is null for anything
@@ -68,17 +70,17 @@ function pointLabel(action, outcome) {
 export function describeEvent(e, playersById, names) {
     switch (e.type) {
         case 'player':
-            return { actor: playersById[e.playerId] || 'Unknown', side: 'us', outcome: e.outcome, text: pointLabel(e.action, e.outcome) };
+            return { actor: playersById[e.playerId] || 'Unknown', side: 'us', outcome: e.outcome, text: actionLabel(e.action, e.outcome) };
         case 'oppPoint':
-            return { actor: names.opponent, side: 'them', outcome: 'positive', text: pointLabel(e.action, 'positive') };
+            return { actor: names.opponent, side: 'them', outcome: 'positive', text: actionLabel(e.action, 'positive') };
         case 'oppError':
-            return { actor: names.opponent, side: 'them', outcome: 'negative', text: pointLabel(e.action, 'negative') };
+            return { actor: names.opponent, side: 'them', outcome: 'negative', text: actionLabel(e.action, 'negative') };
         default:
             return { actor: null, side: null, outcome: null, text: 'Score adjusted' };
     }
 }
 
-// `outcome` styles the action text: positive, negative, or another class such as neutral; null means adjusted.
+// `outcome` styles the action text: positive, negative, or another class such as rally; null means adjusted.
 export function renderDescription({ actor, side, outcome, text }) {
     const desc = el('span', 'point-desc');
     const actorCol = el('span', 'point-actor-col');

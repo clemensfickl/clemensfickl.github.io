@@ -48,12 +48,14 @@ export function openHistoryModal(hooks) {
     });
 }
 
-// Like a point log entry. Rally-ending steps get the winner's color; substitutions and corrections have no actor.
+// Like a point log entry. Rally-ending steps get the winner's color and actions that keep the rally going amber;
+// substitutions and corrections have no actor.
 function stepItem(step, state, playersById, names) {
     const winner = step.event && pointWinner(step.event);
-    const item = el('li', `point-item history-step ${state}` + (winner ? ` ${winner}` : ''));
+    const desc = stepDescription(step, winner, playersById, names);
+    const item = el('li', `point-item history-step ${state} ${winner || desc.outcome || 'adjusted'}`);
     item.appendChild(el('span', 'point-score', step.score));
-    item.appendChild(renderDescription(stepDescription(step, winner, playersById, names)));
+    item.appendChild(renderDescription(desc));
     return item;
 }
 
@@ -62,7 +64,7 @@ function stepDescription(step, winner, playersById, names) {
     if (!event) return { actor: null, outcome: 'substitution', text: step.text };
     if (!['player', 'oppPoint', 'oppError'].includes(event.type)) return { actor: null, outcome: null, text: step.text };
     const desc = describeEvent(event, playersById, names);
-    return winner ? desc : { ...desc, outcome: 'neutral' };
+    return winner ? desc : { ...desc, outcome: 'rally' };
 }
 
 function iconButton(name, label, onClick) {

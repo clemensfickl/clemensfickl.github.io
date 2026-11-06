@@ -5,9 +5,9 @@ import { load, save, remove } from './storage.js';
 import { getEvents, truncateEvents, appendEvents, getCurrentSet, setCurrentSet } from './actions.js';
 import { getPlayers, rosterSnapshot, restoreRoster } from './players.js';
 import { getAppliedLiberoTarget, setAppliedLiberoTarget, getTeamNames, replaySet, ROLE_ORDER } from './match.js';
+import { actionLabel } from './rally-view.js';
 
 const LIMIT = 200;
-const SYMBOLS = { positive: '+', neutral: '~', negative: '-' };
 
 let history = { undo: [], redo: [] };
 let view = { get: () => null, set: () => {} };
@@ -175,11 +175,11 @@ function describeEvent(event) {
     const names = getTeamNames();
     switch (event.type) {
         case 'player':
-            return { text: `${playerName(event.playerId)} · ${event.action} ${SYMBOLS[event.outcome]}`, key: event.playerId };
+            return { text: `${playerName(event.playerId)} · ${actionLabel(event.action, event.outcome)}`, key: event.playerId };
         case 'oppPoint':
-            return { text: `${names.opponent} · ${event.action} +`, key: `opp-${event.action}` };
+            return { text: `${names.opponent} · ${actionLabel(event.action, 'positive')}`, key: `opp-${event.action}` };
         case 'oppError':
-            return { text: `${names.opponent} · ${event.action} -`, key: `opp-${event.action}` };
+            return { text: `${names.opponent} · ${actionLabel(event.action, 'negative')}`, key: `opp-${event.action}` };
         case 'manualPoint':
             return { text: `+1 ${event.to === 'us' ? names.team : names.opponent}`, key: null };
         case 'rotate':
