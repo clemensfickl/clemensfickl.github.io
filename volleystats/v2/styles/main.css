@@ -233,6 +233,11 @@ select {
     padding: 0.35rem 0.7rem;
 }
 
+.history-buttons {
+    display: flex;
+    gap: 0.35rem;
+}
+
 #set-selector-container {
     display: flex;
     align-items: center;
@@ -574,6 +579,7 @@ select {
 .flash-positive { --flash-color: var(--positive); }
 .flash-neutral { --flash-color: var(--neutral); }
 .flash-negative { --flash-color: var(--negative); }
+.flash-history { --flash-color: var(--muted); }
 
 @keyframes flash {
     from {
@@ -1366,4 +1372,29 @@ select {
 .stats-actions .btn {
     flex: 1;
     min-width: 150px;
+}
+
+/* Says what Undo or Redo changed. */
+.toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(1.25rem + env(safe-area-inset-bottom));
+    z-index: 1100;
+    max-width: calc(100vw - 2rem);
+    padding: 0.55rem 1rem;
+    border-radius: 999px;
+    background: #1e293b;
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 600;
+    box-shadow: 0 4px 14px rgb(15 23 42 / 0.25);
+    opacity: 0;
+    transform: translate(-50%, 0.5rem);
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+}
+
+.toast.visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
 }

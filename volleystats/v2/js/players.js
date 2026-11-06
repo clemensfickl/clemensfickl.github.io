@@ -169,6 +169,30 @@ export function setLiberoCoverage(role) {
     savePlayers();
 }
 
+// Roles and libero numbers as [id, role, liberoNo] entries, for undo.
+export function rosterSnapshot() {
+    return players.map(p => [p.id, p.role, p.liberoNo]);
+}
+
+// Players added after the snapshot keep their role unless someone from the snapshot takes it back.
+export function restoreRoster(snapshot) {
+    const saved = new Map(snapshot.map(([id, role, liberoNo]) => [id, { role, liberoNo }]));
+    const taken = new Set();
+    players.forEach(p => {
+        const entry = saved.get(p.id);
+        if (!entry) return;
+        p.role = entry.role;
+        p.liberoNo = entry.liberoNo;
+        if (p.role) taken.add(p.role);
+    });
+    players.forEach(p => {
+        if (saved.has(p.id) || !taken.has(p.role)) return;
+        p.role = null;
+        p.liberoNo = null;
+    });
+    savePlayers();
+}
+
 export function exchangeWithBench(fieldPlayerId, benchPlayerId) {
     const field = players.find(p => p.id === fieldPlayerId);
     const bench = players.find(p => p.id === benchPlayerId);

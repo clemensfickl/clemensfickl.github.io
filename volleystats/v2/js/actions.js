@@ -59,11 +59,16 @@ export function recordSetterSwap() {
     record({ type: 'setterSwap' });
 }
 
-export function undoLastAction() {
-    if (events.length === 0) return false;
-    events.pop();
+// Removes and returns every event after the first `count`.
+export function truncateEvents(count) {
+    const removed = events.splice(count);
     save('events', events);
-    return true;
+    return removed;
+}
+
+export function appendEvents(list) {
+    events.push(...list);
+    save('events', events);
 }
 
 export function resetEvents() {

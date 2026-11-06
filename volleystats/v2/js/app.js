@@ -3,10 +3,12 @@ import { initUI } from './ui.js';
 import { loadPlayers } from './players.js';
 import { loadEvents } from './actions.js';
 import { loadMatch } from './match.js';
+import { loadHistory } from './history.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     loadPlayers();
     loadEvents();
     loadMatch();
+    loadHistory();
     initUI();
 });

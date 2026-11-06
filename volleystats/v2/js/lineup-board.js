@@ -3,6 +3,7 @@ import { getPlayers, baseLineup, placePlayer, liberoSlot, ROLES } from './player
 import { setAppliedLiberoTarget, courtPosition, ROLE_ORDER } from './match.js';
 import { el, notifyChange } from './dom.js';
 import { makeDraggable } from './drag.js';
+import { undoable } from './history.js';
 
 // Seen from our side of the net: front row on top.
 const COURT_LAYOUT = [4, 3, 2, 5, 6, 1];
@@ -108,8 +109,10 @@ export function renderLineupBoard(container, setterPos) {
 
     const place = (playerId, role) => {
         selectedId = null;
-        placePlayer(playerId, role);
-        setAppliedLiberoTarget(null);
+        undoable(() => {
+            placePlayer(playerId, role);
+            setAppliedLiberoTarget(null);
+        });
         notifyChange();
         render();
     };

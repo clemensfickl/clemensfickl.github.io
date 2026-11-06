@@ -1,22 +1,23 @@
 // Score corrections and the end-of-set / end-of-match prompts.
-import { getCurrentSet, setCurrentSet, recordManualPoint, recordRotate, recordSwitchServe, recordSetterSwap, undoLastAction } from './actions.js';
+import { getCurrentSet, setCurrentSet, recordManualPoint, recordRotate, recordSwitchServe, recordSetterSwap } from './actions.js';
+import { undoable } from './history.js';
 import { replaySet, isSetOver, getMatchScore, isMatchOver, getTeamNames, rotationOf } from './match.js';
 import { el, button, notifyChange } from './dom.js';
 import { openModal } from './modal.js';
 
-// Runs `recordFn` and opens the set-end prompt if that event decided the set. Returns whether it did.
-// `onNextSet` resets the tracker's selected action, after moving on or after undoing the deciding point.
-export function recordAndCheckSetEnd(recordFn, onNextSet) {
+// Runs `recordFn` as one undo step and opens the set-end prompt if that event decided the set. Returns whether it
+// did. `hooks` come from the tracker: `resetAction` re-derives the selected action, `undo` undoes with feedback.
+export function recordAndCheckSetEnd(recordFn, hooks) {
     const set = getCurrentSet();
     const wasOver = isSetOver(replaySet(set), set);
-    recordFn();
+    undoable(recordFn);
     const state = replaySet(set);
     const decided = !wasOver && isSetOver(state, set);
-    if (decided) openSetEndModal(set, state, onNextSet);
+    if (decided) openSetEndModal(set, state, hooks);
     return decided;
 }
 
-function openSetEndModal(set, state, onNextSet) {
+function openSetEndModal(set, state, hooks) {
     const names = getTeamNames();
     const sets = getMatchScore();
     const winner = state.us > state.them ? names.team : names.opponent;
@@ -31,10 +32,8 @@ function openSetEndModal(set, state, onNextSet) {
 
         const btnRow = el('div', 'modal-buttons');
         btnRow.appendChild(button('Undo', 'btn btn-secondary modal-undo', () => {
-            undoLastAction();
             close();
-            onNextSet();
-            notifyChange();
+            hooks.undo();
         }));
         if (matchOver) {
             btnRow.appendChild(button('OK', 'btn btn-primary', close));
@@ -43,7 +42,7 @@ function openSetEndModal(set, state, onNextSet) {
             btnRow.appendChild(button(`Start set ${set + 1}`, 'btn btn-primary', () => {
                 setCurrentSet(set + 1);
                 close();
-                onNextSet();
+                hooks.resetAction();
                 notifyChange();
             }));
         }
@@ -51,8 +50,8 @@ function openSetEndModal(set, state, onNextSet) {
     });
 }
 
-// `resetAction` lets the tracker re-derive the selected action from the new serve.
-export function openAdjustModal(resetAction) {
+// `hooks` as for `recordAndCheckSetEnd`; the selected action is re-derived from the new serve.
+export function openAdjustModal(hooks) {
     const names = getTeamNames();
     openModal('Adjust score', (modal, close) => {
         const status = el('div', 'adjust-status');
@@ -76,8 +75,8 @@ export function openAdjustModal(resetAction) {
             return btn;
         };
         const act = recordFn => () => {
-            const decided = recordAndCheckSetEnd(recordFn, resetAction);
-            resetAction();
+            const decided = recordAndCheckSetEnd(recordFn, hooks);
+            hooks.resetAction();
             if (decided) close();
             else update();
             notifyChange();

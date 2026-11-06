@@ -3,6 +3,7 @@ import { ACTIONS, getEvents, resetEvents } from './actions.js';
 import { getPlayers } from './players.js';
 import { aggregate, winnersErrors, sumOpp, setsWithEvents } from './stats.js';
 import { getTeamNames, clearSetSetups } from './match.js';
+import { clearHistory } from './history.js';
 import { buildRotationTable, buildPointLog, pointLogCsvRows } from './rally-view.js';
 import { el, notifyChange } from './dom.js';
 import { exportCSV } from './export-csv.js';
@@ -19,6 +20,7 @@ export function initStats() {
     document.getElementById('reset-stats').addEventListener('click', () => {
         if (!confirm('Start a new match? This deletes all recorded actions, scores and set lineups. Players and team names are kept. This cannot be undone!')) return;
         resetEvents();
+        clearHistory();
         clearSetSetups();
         statsFilter = 'total';
         notifyChange();

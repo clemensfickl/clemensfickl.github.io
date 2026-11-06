@@ -1,5 +1,7 @@
 // Actions screen: records player actions and opponent errors and points for the current set.
-import { ACTIONS, recordPlayerAction, recordOppError, recordOppPoint, recordSetterSwap, getEvents, getCurrentSet, setCurrentSet, undoLastAction } from './actions.js';
+import { ACTIONS, recordPlayerAction, recordOppError, recordOppPoint, recordSetterSwap, getEvents, getCurrentSet, setCurrentSet } from './actions.js';
+import { undoable, undo, redo, canUndo, canRedo, bindViewState } from './history.js';
+import { showToast } from './toast.js';
 import { getPlayers, getLiberos, liberoOnCourt, liberoSlot, swapWithLibero, exchangeWithBench } from './players.js';
 import { aggregate, playerCounts, winnersErrors, sumOpp } from './stats.js';
 import { replaySet, pointWinner, courtPosition, playingRole, getTeamNames, isSetOver, isSetInPlay, getMatchScore, isMatchOver, ROLE_ORDER, FRONT_ROW } from './match.js';
@@ -26,11 +28,26 @@ let flash = null;
 const promptedSets = new Set();
 
 export function initTracker() {
-    document.getElementById('undo-btn').addEventListener('click', () => {
-        if (!undoLastAction()) return alert('No action to undo');
-        notifyChange();
-    });
+    bindViewState(() => ({ action: selectedAction }), view => { selectedAction = view ? view.action : null; });
+    document.getElementById('undo-btn').addEventListener('click', undoWithFeedback);
+    document.getElementById('redo-btn').addEventListener('click', () => showHistoryStep('Redone', redo()));
 }
+
+function undoWithFeedback() {
+    showHistoryStep('Undone', undo());
+}
+
+// Undo and redo flash the affected player like a recorded action, and say what changed.
+function showHistoryStep(verb, step) {
+    if (!step) return;
+    if (step.key) flash = { key: step.key, outcome: 'history' };
+    showToast(`${verb}: ${step.text}`);
+    navigator.vibrate?.(15);
+    notifyChange();
+}
+
+// What the set-end prompt and the Adjust modal need from the tracker.
+const flowHooks = { resetAction, undo: undoWithFeedback };
 
 // Called when navigating to the Actions screen, so a missing lineup is asked for again.
 export function resetSetupPrompts() {
@@ -74,7 +91,10 @@ export function renderTracker() {
         list.appendChild(renderCourt(players, reservePlayers(), {
             selectedAction,
             record: recordOutcome,
-            substitution: (player, target) => substitution(player, target, { backRow, inPlay }),
+            substitution: (player, target) => {
+                const run = substitution(player, target, { backRow, inPlay });
+                return run && (() => undoable(run));
+            },
             playingRole: role => playingRole(role, state),
             refresh: notifyChange,
             counts: player => countsText(player, setAgg, totalAgg),
@@ -177,7 +197,7 @@ function liberoLabel(n) {
 function recordOutcome(player, outcome) {
     if (!selectedAction) return alert('Select an action first');
     const action = selectedAction;
-    recordAndCheckSetEnd(() => recordPlayerAction(player.id, action, outcome), resetAction);
+    recordAndCheckSetEnd(() => recordPlayerAction(player.id, action, outcome), flowHooks);
     selectNextAction(action);
     confirmRecorded(player.id, outcome);
     notifyChange();
@@ -212,7 +232,7 @@ function substitutionButtons(player) {
         liberos.forEach(libero => {
             const label = liberos.length > 1 ? `L${libero.liberoNo}` : 'Libero';
             buttons.liberos.appendChild(button(label, 'btn btn-secondary swap-libero', () => {
-                swapWithLibero(player.id, libero.liberoNo);
+                undoable(() => swapWithLibero(player.id, libero.liberoNo));
                 notifyChange();
             }));
         });
@@ -328,7 +348,7 @@ function renderOpponentRow(setAgg, totalAgg, blocked) {
 
 function opponentButton(symbol, outcome, action, recordFn) {
     return button(symbol, `opp-btn ${outcome}`, () => {
-        recordAndCheckSetEnd(recordFn, resetAction);
+        recordAndCheckSetEnd(recordFn, flowHooks);
         selectedAction = actionForServe(replaySet(getCurrentSet()));
         confirmRecorded(`opp-${action}`, outcome);
         notifyChange();
@@ -340,9 +360,11 @@ function renderToolbar(set, inPlay) {
     container.innerHTML = '';
     container.appendChild(renderSetSelector());
     container.appendChild(button('Lineup', 'btn btn-secondary', () => openSetup(set)));
-    const adjust = button('Adjust', 'btn btn-secondary', () => openAdjustModal(resetAction));
+    const adjust = button('Adjust', 'btn btn-secondary', () => openAdjustModal(flowHooks));
     adjust.disabled = !inPlay;
     container.appendChild(adjust);
+    document.getElementById('undo-btn').disabled = !canUndo();
+    document.getElementById('redo-btn').disabled = !canRedo();
 }
 
 function renderSetSelector() {
@@ -375,7 +397,7 @@ function openExchangeModal(fieldPlayerId) {
         const btnRow = el('div', 'modal-buttons');
         if (benchPlayers.length > 0) {
             btnRow.appendChild(button('OK', 'btn btn-primary', () => {
-                exchangeWithBench(fieldPlayerId, select.value);
+                undoable(() => exchangeWithBench(fieldPlayerId, select.value));
                 close();
                 notifyChange();
             }));
