@@ -52,9 +52,10 @@
         <section id="action-tracking">
             <div class="page-header">
                 <div id="set-selector-container"></div>
-                <div class="history-buttons">
-                    <button id="undo-btn" class="btn btn-secondary">Undo</button>
-                    <button id="redo-btn" class="btn btn-secondary">Redo</button>
+                <div class="history-buttons" role="group" aria-label="Undo history">
+                    <button id="undo-btn" class="btn btn-secondary" aria-label="Undo" title="Undo"></button>
+                    <button id="redo-btn" class="btn btn-secondary" aria-label="Redo" title="Redo"></button>
+                    <button id="history-btn" class="btn btn-secondary" aria-label="History" title="History"></button>
                 </div>
             </div>
             <div id="action-buttons"></div>

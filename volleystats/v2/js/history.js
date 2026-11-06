@@ -4,7 +4,7 @@
 import { load, save, remove } from './storage.js';
 import { getEvents, truncateEvents, appendEvents, getCurrentSet, setCurrentSet } from './actions.js';
 import { getPlayers, rosterSnapshot, restoreRoster } from './players.js';
-import { getAppliedLiberoTarget, setAppliedLiberoTarget, getTeamNames, ROLE_ORDER } from './match.js';
+import { getAppliedLiberoTarget, setAppliedLiberoTarget, getTeamNames, replaySet, ROLE_ORDER } from './match.js';
 
 const LIMIT = 200;
 const SYMBOLS = { positive: '+', neutral: '~', negative: '-' };
@@ -47,14 +47,16 @@ function restore(snapshot) {
     view.set(snapshot.view);
 }
 
-// Runs `change` as one undo step, unless it didn't change any event or role.
+// Runs `change` as one undo step, unless it didn't change any event or role. The step's description is taken
+// right away, before the automatic libero switch reacts to it.
 export function undoable(change) {
     const before = capture();
     const result = change();
-    const changed = getEvents().length !== before.eventCount
-        || JSON.stringify(rosterSnapshot()) !== JSON.stringify(before.roster);
+    const roster = rosterSnapshot();
+    const changed = getEvents().length !== before.eventCount || JSON.stringify(roster) !== JSON.stringify(before.roster);
     if (changed) {
-        history.undo.push(before);
+        const step = describe(before.roster, roster, getEvents().slice(before.eventCount));
+        history.undo.push({ ...before, step });
         if (history.undo.length > LIMIT) history.undo.shift();
         history.redo = [];
         saveHistory();
@@ -62,16 +64,27 @@ export function undoable(change) {
     return result;
 }
 
-export function canUndo() {
-    return history.undo.length > 0 || getEvents().length > 0;
+// Undo and redo only work in the set the next step belongs to, so a set can't be changed once a later set has
+// newer steps, and Undo in set 2 never reaches into set 1.
+function nextUndoSet() {
+    const top = history.undo[history.undo.length - 1];
+    if (top) return top.set;
+    const events = getEvents();
+    return events.length > 0 ? events[events.length - 1].set : null;
 }
 
-export function canRedo() {
-    return history.redo.length > 0;
+export function canUndo(set = getCurrentSet()) {
+    return nextUndoSet() === set;
+}
+
+export function canRedo(set = getCurrentSet()) {
+    const top = history.redo[history.redo.length - 1];
+    return !!top && top.set === set;
 }
 
 // Returns { text, key } describing what was undone (key: the player or opponent group to highlight), or null.
 export function undo() {
+    if (!canUndo()) return null;
     const events = getEvents();
     let before = history.undo.pop();
     if (before && before.eventCount > events.length) {
@@ -81,19 +94,21 @@ export function undo() {
     // Events recorded before undo history existed, or beyond its limit, are undone one by one.
     if (!before) {
         if (events.length === 0) return null;
-        before = { ...capture(), eventCount: events.length - 1, set: events[events.length - 1].set, view: null };
+        const last = events[events.length - 1];
+        before = { ...capture(), eventCount: events.length - 1, set: last.set, view: null, step: describeEvent(last) };
     }
     const after = capture();
     const removed = truncateEvents(before.eventCount);
+    const step = before.step || describe(before.roster, after.roster, removed);
     restore(before);
-    history.redo.push({ ...after, events: removed });
+    history.redo.push({ ...after, events: removed, step });
     saveHistory();
-    return describe(before.roster, after.roster, removed);
+    return step;
 }
 
 export function redo() {
+    if (!canRedo()) return null;
     const after = history.redo.pop();
-    if (!after) return null;
     const before = capture();
     if (before.eventCount + after.events.length !== after.eventCount) {
         history.redo = [];
@@ -102,9 +117,45 @@ export function redo() {
     }
     appendEvents(after.events);
     restore(after);
-    history.undo.push(before);
+    history.undo.push({ ...before, step: after.step });
     saveHistory();
-    return describe(before.roster, after.roster, after.events);
+    return after.step;
+}
+
+// The steps of `set` in order, for the history popup: { done, undone, blockedBy }. Each step is
+// { text, score } with the score after it. `blockedBy` is the later set whose steps must be undone first.
+export function getTimeline(set) {
+    const events = getEvents();
+    const undone = [...history.redo].reverse();
+    const timeline = events.concat(...undone.map(entry => entry.events));
+    const scoreAt = count => {
+        const state = replaySet(set, timeline.slice(0, count));
+        return `${state.us}:${state.them}`;
+    };
+
+    const firstTracked = history.undo.length > 0 ? history.undo[0].eventCount : events.length;
+    const done = [];
+    events.slice(0, firstTracked).forEach((event, i) => {
+        if (event.set === set) done.push({ text: describeEvent(event).text, score: scoreAt(i + 1) });
+    });
+    history.undo.forEach((entry, i) => {
+        if (entry.set !== set) return;
+        const end = i + 1 < history.undo.length ? history.undo[i + 1].eventCount : events.length;
+        const step = entry.step || describeRange(timeline.slice(entry.eventCount, end));
+        done.push({ text: step.text, score: scoreAt(end) });
+    });
+    const redoable = undone.filter(entry => entry.set === set).map(entry => ({
+        text: (entry.step || describeRange(entry.events)).text,
+        score: scoreAt(entry.eventCount)
+    }));
+
+    const next = nextUndoSet();
+    const blockedBy = done.length > 0 && next !== set ? next : null;
+    return { done, undone: redoable, blockedBy };
+}
+
+function describeRange(events) {
+    return events.length > 0 ? describeEvent(events[events.length - 1]) : { text: 'Substitution', key: null };
 }
 
 function describe(rosterBefore, rosterAfter, events) {

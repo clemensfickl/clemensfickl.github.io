@@ -2,6 +2,8 @@
 import { ACTIONS, recordPlayerAction, recordOppError, recordOppPoint, recordSetterSwap, getEvents, getCurrentSet, setCurrentSet } from './actions.js';
 import { undoable, undo, redo, canUndo, canRedo, bindViewState } from './history.js';
 import { showToast } from './toast.js';
+import { openHistoryModal } from './history-modal.js';
+import { icon } from './icons.js';
 import { getPlayers, getLiberos, liberoOnCourt, liberoSlot, swapWithLibero, exchangeWithBench } from './players.js';
 import { aggregate, playerCounts, winnersErrors, sumOpp } from './stats.js';
 import { replaySet, pointWinner, courtPosition, playingRole, getTeamNames, isSetOver, isSetInPlay, getMatchScore, isMatchOver, ROLE_ORDER, FRONT_ROW } from './match.js';
@@ -29,12 +31,24 @@ const promptedSets = new Set();
 
 export function initTracker() {
     bindViewState(() => ({ action: selectedAction }), view => { selectedAction = view ? view.action : null; });
-    document.getElementById('undo-btn').addEventListener('click', undoWithFeedback);
-    document.getElementById('redo-btn').addEventListener('click', () => showHistoryStep('Redone', redo()));
+    const historyButtons = [
+        ['undo-btn', 'undo', undoWithFeedback],
+        ['redo-btn', 'redo', redoWithFeedback],
+        ['history-btn', 'history', () => openHistoryModal({ undo: undoWithFeedback, redo: redoWithFeedback })]
+    ];
+    historyButtons.forEach(([id, name, onClick]) => {
+        const btn = document.getElementById(id);
+        btn.appendChild(icon(name));
+        btn.addEventListener('click', onClick);
+    });
 }
 
 function undoWithFeedback() {
     showHistoryStep('Undone', undo());
+}
+
+function redoWithFeedback() {
+    showHistoryStep('Redone', redo());
 }
 
 // Undo and redo flash the affected player like a recorded action, and say what changed.

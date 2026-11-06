@@ -235,7 +235,42 @@ select {
 
 .history-buttons {
     display: flex;
+    gap: 1px;
+}
+
+#action-tracking .history-buttons .btn {
+    display: flex;
+    align-items: center;
+    padding: 0.35rem 0.6rem;
+    border-radius: 0;
+}
+
+#action-tracking .history-buttons .btn:first-child {
+    border-radius: 8px 0 0 8px;
+}
+
+#action-tracking .history-buttons .btn:last-child {
+    border-radius: 0 8px 8px 0;
+}
+
+.icon {
+    display: inline-flex;
+}
+
+.icon svg {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.icon-text-btn {
+    display: inline-flex;
+    align-items: center;
     gap: 0.35rem;
+}
+
+.icon-text-btn .icon svg {
+    width: 1.1rem;
+    height: 1.1rem;
 }
 
 #set-selector-container {
@@ -1397,4 +1432,58 @@ select {
 .toast.visible {
     opacity: 1;
     transform: translate(-50%, 0);
+}
+
+.history-list {
+    max-height: 55vh;
+    overflow-y: auto;
+    margin: 0 0 0.5rem;
+    padding: 0;
+    list-style: none;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+.history-list li {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.9rem;
+}
+
+.history-list li + li {
+    border-top: 1px solid var(--border);
+}
+
+.history-score {
+    flex: none;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.history-step.undone {
+    color: #94a3b8;
+    background: #f8fafc;
+}
+
+.history-step.undone .history-text {
+    text-decoration: line-through;
+}
+
+.history-list .history-now {
+    position: sticky;
+    top: 0;
+    bottom: 0;
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.history-now .history-score {
+    color: inherit;
+}
+
+.history-empty {
+    color: var(--muted);
 }
