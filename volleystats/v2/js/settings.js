@@ -1,9 +1,12 @@
 // Device preferences that are not part of the match.
 import { load, save } from './storage.js';
 
-// 'list' (by rotation) or 'court' (where players play).
+const LAYOUTS = ['list', 'court', 'side'];
+
+// 'list' (by rotation), or where players play: 'court' seen from behind the baseline, 'side' from the sideline.
 export function getActionsLayout() {
-    return load('layout', 'court') === 'list' ? 'list' : 'court';
+    const layout = load('layout', 'court');
+    return LAYOUTS.includes(layout) ? layout : 'court';
 }
 
 export function setActionsLayout(layout) {

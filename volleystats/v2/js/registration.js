@@ -39,7 +39,7 @@ export function renderRegistration() {
 }
 
 function renderSettings() {
-    renderSegmented('layout-setting', [['list', 'List'], ['court', 'Court']], getActionsLayout(), setActionsLayout);
+    renderSegmented('layout-setting', [['list', 'List'], ['court', 'Baseline'], ['side', 'Sideline']], getActionsLayout(), setActionsLayout);
     renderSegmented('auto-libero-setting', [[true, 'On'], [false, 'Off']], getAutoLibero(), enabled => {
         setAutoLibero(enabled);
         // Switching it on applies the coverage for the current rotation right away.

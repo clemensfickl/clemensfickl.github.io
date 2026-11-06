@@ -13,6 +13,7 @@ import { el, button, notifyChange } from './dom.js';
 import { openModal } from './modal.js';
 import { renderCourt } from './court-view.js';
 import { getActionsLayout } from './settings.js';
+import { courtOrientation } from './court-layout.js';
 
 const OUTCOME_SYMBOLS = { positive: '+', neutral: '~', negative: '-' };
 // The opponent can't win a point with a reception, and a block error ends up as our attack point or Oth.
@@ -100,10 +101,11 @@ export function renderTracker() {
         player, pos, active: inPlay && (!pos || !allowed || allowed.includes(pos))
     }));
     // The court needs the rotation; until the lineup is set the list is shown.
-    if (getActionsLayout() === 'court' && state.setterPos) {
+    if (getActionsLayout() !== 'list' && state.setterPos) {
         const backRow = player => !FRONT_ROW.includes(courtPosition(player.role, state.setterPos));
         list.appendChild(renderCourt(players, reservePlayers(), {
             selectedAction,
+            orientation: courtOrientation(set),
             record: recordOutcome,
             substitution: (player, target) => {
                 const run = substitution(player, target, { backRow, inPlay });

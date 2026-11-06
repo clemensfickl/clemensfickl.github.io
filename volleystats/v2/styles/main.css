@@ -830,6 +830,49 @@ select {
     background: #fed7aa;
 }
 
+/* Sideline views: our half next to a vertical net. */
+.court-frame.court-left,
+.court-frame.court-right {
+    display: flex;
+}
+
+.court-left > .court-grid,
+.court-right > .court-grid,
+.court-left > .court,
+.court-right > .court {
+    flex: 1;
+    min-width: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.court-left > .court-grid,
+.court-left > .court {
+    border-radius: 10px 0 0 10px;
+}
+
+.court-right > .court-grid,
+.court-right > .court {
+    border-radius: 0 10px 10px 0;
+}
+
+.court-left > .court-net,
+.court-right > .court-net {
+    flex: none;
+    width: 1.4rem;
+    height: auto;
+    background: repeating-linear-gradient(0deg, #cbd5e1 0 2px, transparent 2px 8px), #f1f5f9;
+    line-height: 1.4rem;
+    writing-mode: vertical-rl;
+}
+
+.court-left > .court-net {
+    border-radius: 0 6px 6px 0;
+}
+
+.court-right > .court-net {
+    border-radius: 6px 0 0 6px;
+}
+
 .setup-modal .lineup-board {
     margin-top: 0.6rem;
 }

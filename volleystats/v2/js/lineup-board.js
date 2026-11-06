@@ -4,13 +4,12 @@ import { setAppliedLiberoTarget, courtPosition, ROLE_ORDER } from './match.js';
 import { el, notifyChange } from './dom.js';
 import { makeDraggable } from './drag.js';
 import { undoable } from './history.js';
-
-// Seen from our side of the net: front row on top.
-const COURT_LAYOUT = [4, 3, 2, 5, 6, 1];
+import { spotOrder, courtFrame } from './court-layout.js';
 
 const roleLabel = Object.fromEntries(ROLES.map(r => [r.key, r.short]));
 
-export function renderLineupBoard(container, setterPos) {
+// `orientation` as in court-layout.js.
+export function renderLineupBoard(container, setterPos, orientation) {
     let selectedId = null;
 
     const render = () => {
@@ -58,10 +57,9 @@ export function renderLineupBoard(container, setterPos) {
             render();
         });
 
-        board.appendChild(el('div', 'court-net', 'Net'));
         const court = el('div', 'court');
         const roleAt = Object.fromEntries(ROLE_ORDER.map(role => [courtPosition(role, setterPos), role]));
-        COURT_LAYOUT.forEach(pos => {
+        spotOrder(orientation).forEach(pos => {
             const role = roleAt[pos];
             const cell = slot('court-cell' + (role === 'setter' ? ' setter' : ''), role);
             const head = el('div', 'court-cell-head');
@@ -70,7 +68,7 @@ export function renderLineupBoard(container, setterPos) {
             cell.appendChild(lineup[role] ? chip(lineup[role]) : el('span', 'slot-empty', 'empty'));
             court.appendChild(cell);
         });
-        board.appendChild(court);
+        board.appendChild(courtFrame(orientation, court));
 
         const reserve = el('div', 'lineup-reserve');
         [1, 2].forEach(n => {

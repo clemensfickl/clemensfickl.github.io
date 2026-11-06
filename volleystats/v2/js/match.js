@@ -31,9 +31,21 @@ export function setTeamNames(teamName, opponentName) {
     saveMatch();
 }
 
-// `{ setterStart: 1-6, weServeFirst: bool }` or null.
+// `{ setterStart: 1-6, weServeFirst: bool, ourSide?: 'left' | 'right' }` or null.
 export function getSetSetup(set) {
     return config.sets[set] || null;
+}
+
+// The half our team plays on in `set`, as seen from the sideline.
+export function getOurSide(set) {
+    return getSetSetup(set)?.ourSide || defaultSide(set);
+}
+
+// Set 2 starts on the same side as set 1, every later set on the other one.
+export function defaultSide(set) {
+    const first = getSetSetup(1)?.ourSide || 'left';
+    if (set <= 2) return first;
+    return first === 'left' ? 'right' : 'left';
 }
 
 export function setSetSetup(set, setup) {

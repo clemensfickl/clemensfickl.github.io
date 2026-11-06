@@ -3,9 +3,9 @@
 import { FRONT_ROW } from './match.js';
 import { el, button } from './dom.js';
 import { makeDraggable } from './drag.js';
+import { spotOrder, courtFrame } from './court-layout.js';
 
 const OUTCOMES = [['positive', '+'], ['neutral', '~'], ['negative', '-']];
-const COURT_LAYOUT = [4, 3, 2, 5, 6, 1];
 const KIND = {
     setter: 'right', oppositeHitter: 'right',
     outsideHitter1: 'outside', outsideHitter2: 'outside',
@@ -29,7 +29,7 @@ function playingSpot(role, pos) {
 
 // `players`: [{ player, pos, active }] with the rotational position.
 // `ctx.substitution(player, target)` returns the substitution for a drop, or null if it isn't allowed;
-// a target is { player }, { libero: n } or { bench: true }.
+// a target is { player }, { libero: n } or { bench: true }. `ctx.orientation` as in court-layout.js.
 export function renderCourt(players, reserve, ctx) {
     const byId = Object.fromEntries([...players.map(e => e.player), ...reserve.bench, ...reserve.liberos.map(s => s.player)]
         .filter(Boolean).map(p => [p.id, p]));
@@ -79,13 +79,12 @@ export function renderCourt(players, reserve, ctx) {
         ctx.refresh();
     });
 
-    wrap.appendChild(el('div', 'court-net', 'Net'));
     const bySpot = {};
     players.forEach(entry => {
         bySpot[playingSpot(entry.player.role, entry.pos)] = entry;
     });
     const court = el('div', 'court-grid');
-    COURT_LAYOUT.forEach(spot => {
+    spotOrder(ctx.orientation).forEach(spot => {
         const entry = bySpot[spot];
         if (!entry) return court.appendChild(el('div', 'court-player-cell empty'));
         const cell = target(renderCell(entry, ctx));
@@ -93,7 +92,7 @@ export function renderCourt(players, reserve, ctx) {
         draggable(cell, entry.player);
         court.appendChild(cell);
     });
-    wrap.appendChild(court);
+    wrap.appendChild(courtFrame(ctx.orientation, court));
     wrap.appendChild(renderReserve(reserve, ctx, { draggable, target }));
 
     const selected = byId[selectedId];

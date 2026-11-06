@@ -1,6 +1,9 @@
-// Set setup: the lineup, where the setter starts and which team serves first.
-import { getSetSetup, setSetSetup, getTeamNames } from './match.js';
+// Set setup: the lineup, where the setter starts, which team serves first and, for the sideline view, which
+// side we play on.
+import { getSetSetup, setSetSetup, getTeamNames, getOurSide } from './match.js';
 import { renderLineupBoard } from './lineup-board.js';
+import { courtOrientation } from './court-layout.js';
+import { getActionsLayout } from './settings.js';
 import { el, button, notifyChange } from './dom.js';
 import { openModal } from './modal.js';
 
@@ -9,6 +12,8 @@ export function openSetupModal(set, onSaved = () => {}) {
     let weServeFirst = existing ? existing.weServeFirst : defaultFirstServe(set);
     let setterStart = existing ? existing.setterStart : defaultSetterStart(weServeFirst);
     let setterChosen = !!existing;
+    let ourSide = getOurSide(set);
+    const sideView = getActionsLayout() === 'side';
     const names = getTeamNames();
 
     openModal(`Set ${set}: Lineup`, (modal, close) => {
@@ -16,6 +21,12 @@ export function openSetupModal(set, onSaved = () => {}) {
         modal.appendChild(el('p', 'modal-label', 'First serve'));
         const serveToggle = el('div', 'segmented');
         modal.appendChild(serveToggle);
+
+        const sideToggle = el('div', 'segmented');
+        if (sideView) {
+            modal.appendChild(el('p', 'modal-label', `Side of ${names.team} (as you see it)`));
+            modal.appendChild(sideToggle);
+        }
 
         modal.appendChild(el('p', 'modal-label', 'Setter starts on'));
         const setterPicker = el('div', 'segmented setter-picker');
@@ -33,7 +44,15 @@ export function openSetupModal(set, onSaved = () => {}) {
                     render();
                 }));
             }
-            renderLineupBoard(board, setterStart);
+            renderLineupBoard(board, setterStart, courtOrientation(set, ourSide));
+
+            sideToggle.innerHTML = '';
+            [['left', 'Left'], ['right', 'Right']].forEach(([value, label]) => {
+                sideToggle.appendChild(button(label, 'segmented-btn' + (ourSide === value ? ' active' : ''), () => {
+                    ourSide = value;
+                    render();
+                }));
+            });
 
             serveToggle.innerHTML = '';
             [[true, names.team], [false, names.opponent]].forEach(([value, label]) => {
@@ -49,7 +68,9 @@ export function openSetupModal(set, onSaved = () => {}) {
         const btnRow = el('div', 'modal-buttons');
         btnRow.appendChild(button('Close', 'btn', close));
         btnRow.appendChild(button(existing ? 'Save' : 'Start set', 'btn btn-primary', () => {
-            setSetSetup(set, { setterStart, weServeFirst });
+            const setup = { setterStart, weServeFirst };
+            if (sideView || existing?.ourSide) setup.ourSide = sideView ? ourSide : existing.ourSide;
+            setSetSetup(set, setup);
             close();
             onSaved();
             notifyChange();
