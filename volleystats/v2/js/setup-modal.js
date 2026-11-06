@@ -24,7 +24,7 @@ export function openSetupModal(set, onSaved = () => {}) {
 
         const sideToggle = el('div', 'segmented');
         if (sideView) {
-            modal.appendChild(el('p', 'modal-label', `Side of ${names.team} (as you see it)`));
+            modal.appendChild(el('p', 'modal-label', `Starting side of ${names.team} (as you see it)`));
             modal.appendChild(sideToggle);
         }
 

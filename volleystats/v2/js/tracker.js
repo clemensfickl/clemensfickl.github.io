@@ -105,7 +105,7 @@ export function renderTracker() {
         const backRow = player => !FRONT_ROW.includes(courtPosition(player.role, state.setterPos));
         list.appendChild(renderCourt(players, reservePlayers(), {
             selectedAction,
-            orientation: courtOrientation(set),
+            orientation: courtOrientation(set, state.ourSide),
             record: recordOutcome,
             substitution: (player, target) => {
                 const run = substitution(player, target, { backRow, inPlay });

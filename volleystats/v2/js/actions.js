@@ -54,6 +54,11 @@ export function recordSwitchServe() {
     record({ type: 'switchServe' });
 }
 
+// The teams change sides mid-set; only the sideline view shows it.
+export function recordSwitchSides() {
+    record({ type: 'switchSides' });
+}
+
 // Double substitution: the players in the setter and opposite slots swap jobs (and swap back the same way).
 export function recordSetterSwap() {
     record({ type: 'setterSwap' });

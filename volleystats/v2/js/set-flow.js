@@ -1,5 +1,6 @@
 // Score corrections and the end-of-set / end-of-match prompts.
-import { getCurrentSet, setCurrentSet, recordManualPoint, recordRotate, recordSwitchServe, recordSetterSwap } from './actions.js';
+import { getCurrentSet, setCurrentSet, recordManualPoint, recordRotate, recordSwitchServe, recordSwitchSides, recordSetterSwap } from './actions.js';
+import { getActionsLayout } from './settings.js';
 import { undoable } from './history.js';
 import { replaySet, isSetOver, getMatchScore, isMatchOver, getTeamNames, rotationOf } from './match.js';
 import { el, button, notifyChange } from './dom.js';
@@ -51,8 +52,10 @@ function openSetEndModal(set, state, hooks) {
 }
 
 // `hooks` as for `recordAndCheckSetEnd`; the selected action is re-derived from the new serve.
+// Switching sides only shows in the sideline view, so it is offered there only.
 export function openAdjustModal(hooks) {
     const names = getTeamNames();
+    const sideView = getActionsLayout() === 'side';
     openModal('Adjust score', (modal, close) => {
         const status = el('div', 'adjust-status');
         const statusScore = el('div', 'adjust-score');
@@ -67,6 +70,7 @@ export function openAdjustModal(hooks) {
             if (state.serving) meta.push(`${state.serving === 'us' ? names.team : names.opponent} serves`);
             if (state.setterPos) meta.push(`Rotation ${rotationOf(state)}`);
             if (state.setterSwapped) meta.push('Setter and opposite swapped');
+            if (sideView) meta.push(`${names.team} on the ${state.ourSide}`);
             statusMeta.textContent = meta.join(' · ');
         };
         const pointButton = (name, className, to) => {
@@ -87,7 +91,8 @@ export function openAdjustModal(hooks) {
         grid.appendChild(pointButton(names.opponent, 'adjust-them', 'them'));
         grid.appendChild(button('Rotate forward', 'btn', act(() => recordRotate(1))));
         grid.appendChild(button('Rotate back', 'btn', act(() => recordRotate(-1))));
-        grid.appendChild(button('Switch serve', 'btn adjust-wide', act(() => recordSwitchServe())));
+        grid.appendChild(button('Switch serve', sideView ? 'btn' : 'btn adjust-wide', act(() => recordSwitchServe())));
+        if (sideView) grid.appendChild(button('Switch sides', 'btn', act(() => recordSwitchSides())));
         grid.appendChild(button('Swap setter ⇄ opposite', 'btn adjust-wide', act(() => recordSetterSwap())));
         modal.appendChild(grid);
         modal.appendChild(el('p', 'modal-text muted', 'Points added here count for score and rotation, not for player stats. Use Undo to remove a wrong entry.'));

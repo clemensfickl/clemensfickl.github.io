@@ -36,7 +36,7 @@ export function getSetSetup(set) {
     return config.sets[set] || null;
 }
 
-// The half our team plays on in `set`, as seen from the sideline.
+// The half our team starts `set` on, as seen from the sideline. `replaySet` tracks side switches.
 export function getOurSide(set) {
     return getSetSetup(set)?.ourSide || defaultSide(set);
 }
@@ -119,7 +119,8 @@ export function replaySet(set, events = getEvents()) {
         hasSetup: !!setup,
         serving: setup ? (setup.weServeFirst ? 'us' : 'them') : null,
         setterPos: setup ? setup.setterStart : null,
-        setterSwapped: false
+        setterSwapped: false,
+        ourSide: getOurSide(set)
     };
 
     events.forEach(e => {
@@ -134,6 +135,10 @@ export function replaySet(set, events = getEvents()) {
         }
         if (e.type === 'setterSwap') {
             state.setterSwapped = !state.setterSwapped;
+            return;
+        }
+        if (e.type === 'switchSides') {
+            state.ourSide = state.ourSide === 'left' ? 'right' : 'left';
             return;
         }
         const winner = pointWinner(e);

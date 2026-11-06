@@ -186,6 +186,8 @@ function describeEvent(event) {
             return { text: event.delta > 0 ? 'Rotate forward' : 'Rotate back', key: null };
         case 'switchServe':
             return { text: 'Switch serve', key: null };
+        case 'switchSides':
+            return { text: 'Switch sides', key: null };
         case 'setterSwap':
             return { text: 'Setter ⇄ opposite swap', key: null };
         default:
