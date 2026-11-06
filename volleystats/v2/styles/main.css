@@ -1436,52 +1436,37 @@ select {
 
 .history-list {
     max-height: 55vh;
-    overflow-y: auto;
     margin: 0 0 0.5rem;
-    padding: 0;
-    list-style: none;
     border: 1px solid var(--border);
     border-radius: 10px;
 }
 
-.history-list li {
-    display: flex;
-    justify-content: space-between;
-    gap: 0.75rem;
-    padding: 0.45rem 0.75rem;
-    font-size: 0.9rem;
-}
-
-.history-list li + li {
-    border-top: 1px solid var(--border);
-}
-
-.history-score {
-    flex: none;
-    color: var(--muted);
-    font-variant-numeric: tabular-nums;
+.history-list .point-item {
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
 }
 
 .history-step.undone {
-    color: #94a3b8;
-    background: #f8fafc;
+    opacity: 0.45;
 }
 
-.history-step.undone .history-text {
+.history-step.undone .point-desc {
     text-decoration: line-through;
+}
+
+.point-action.substitution {
+    color: #475569;
+    font-weight: 600;
 }
 
 .history-list .history-now {
     position: sticky;
     top: 0;
     bottom: 0;
+    border-left-color: var(--primary);
     background: var(--primary-soft);
     color: var(--primary);
     font-weight: 700;
-}
-
-.history-now .history-score {
-    color: inherit;
 }
 
 .history-empty {

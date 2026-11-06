@@ -123,31 +123,35 @@ export function redo() {
 }
 
 // The steps of `set` in order, for the history popup: { done, undone, blockedBy }. Each step is
-// { text, score } with the score after it. `blockedBy` is the later set whose steps must be undone first.
+// { text, event, score }: `event` is the step's (last) event, null for substitutions, and the score is the one
+// after the step. `blockedBy` is the later set whose steps must be undone first.
 export function getTimeline(set) {
     const events = getEvents();
     const undone = [...history.redo].reverse();
     const timeline = events.concat(...undone.map(entry => entry.events));
-    const scoreAt = count => {
-        const state = replaySet(set, timeline.slice(0, count));
-        return `${state.us}:${state.them}`;
+    const stepOf = (entry, start, end) => {
+        const stepEvents = timeline.slice(start, end);
+        const state = replaySet(set, timeline.slice(0, end));
+        return {
+            text: (entry?.step || describeRange(stepEvents)).text,
+            event: stepEvents[stepEvents.length - 1] || null,
+            score: `${state.us}:${state.them}`
+        };
     };
 
     const firstTracked = history.undo.length > 0 ? history.undo[0].eventCount : events.length;
     const done = [];
     events.slice(0, firstTracked).forEach((event, i) => {
-        if (event.set === set) done.push({ text: describeEvent(event).text, score: scoreAt(i + 1) });
+        if (event.set === set) done.push(stepOf(null, i, i + 1));
     });
     history.undo.forEach((entry, i) => {
         if (entry.set !== set) return;
         const end = i + 1 < history.undo.length ? history.undo[i + 1].eventCount : events.length;
-        const step = entry.step || describeRange(timeline.slice(entry.eventCount, end));
-        done.push({ text: step.text, score: scoreAt(end) });
+        done.push(stepOf(entry, entry.eventCount, end));
     });
-    const redoable = undone.filter(entry => entry.set === set).map(entry => ({
-        text: (entry.step || describeRange(entry.events)).text,
-        score: scoreAt(entry.eventCount)
-    }));
+    const redoable = undone
+        .filter(entry => entry.set === set)
+        .map(entry => stepOf(entry, entry.eventCount - entry.events.length, entry.eventCount));
 
     const next = nextUndoSet();
     const blockedBy = done.length > 0 && next !== set ? next : null;

@@ -63,9 +63,9 @@ function pointLabel(action, outcome) {
     return POINT_LABELS[outcome]?.[action] || `${action} ${OUTCOME_SYMBOLS[outcome]}`;
 }
 
-// Who decided the point (one of our players or the opponent) and with what.
-function describe(entry, playersById, names) {
-    const e = entry.event;
+// Who made the action (one of our players or the opponent) and what it was. The outcome is null for anything
+// that wasn't a player or opponent action, such as score adjustments.
+export function describeEvent(e, playersById, names) {
     switch (e.type) {
         case 'player':
             return { actor: playersById[e.playerId] || 'Unknown', side: 'us', outcome: e.outcome, text: pointLabel(e.action, e.outcome) };
@@ -78,8 +78,8 @@ function describe(entry, playersById, names) {
     }
 }
 
-function renderDescription(entry, playersById, names) {
-    const { actor, side, outcome, text } = describe(entry, playersById, names);
+// `outcome` styles the action text: positive, negative, or another class such as neutral; null means adjusted.
+export function renderDescription({ actor, side, outcome, text }) {
     const desc = el('span', 'point-desc');
     const actorCol = el('span', 'point-actor-col');
     if (actor) actorCol.appendChild(el('span', `point-actor ${side}`, actor));
@@ -116,7 +116,7 @@ export function buildPointLog(sets) {
         state.log.forEach(entry => {
             const li = el('li', `point-item ${entry.winner}`);
             li.appendChild(el('span', 'point-score', `${entry.us}:${entry.them}`));
-            li.appendChild(renderDescription(entry, playersById, names));
+            li.appendChild(renderDescription(describeEvent(entry.event, playersById, names)));
             if (entry.rotation) li.appendChild(el('span', 'point-rot', `R${entry.rotation}`));
             list.appendChild(li);
         });
