@@ -1,8 +1,8 @@
 // Actions screen: records player actions and opponent errors and points for the current set.
-import { ACTIONS, recordPlayerAction, recordOppError, recordOppPoint, getEvents, getCurrentSet, setCurrentSet, undoLastAction } from './actions.js';
+import { ACTIONS, recordPlayerAction, recordOppError, recordOppPoint, recordSetterSwap, getEvents, getCurrentSet, setCurrentSet, undoLastAction } from './actions.js';
 import { getPlayers, getLiberos, liberoOnCourt, liberoSlot, swapWithLibero, exchangeWithBench } from './players.js';
 import { aggregate, playerCounts, winnersErrors, sumOpp } from './stats.js';
-import { replaySet, pointWinner, courtPosition, getTeamNames, isSetOver, isSetInPlay, getMatchScore, isMatchOver, ROLE_ORDER, FRONT_ROW } from './match.js';
+import { replaySet, pointWinner, courtPosition, playingRole, getTeamNames, isSetOver, isSetInPlay, getMatchScore, isMatchOver, ROLE_ORDER, FRONT_ROW } from './match.js';
 import { openSetupModal } from './setup-modal.js';
 import { recordAndCheckSetEnd, openAdjustModal } from './set-flow.js';
 import { el, button, notifyChange } from './dom.js';
@@ -74,7 +74,8 @@ export function renderTracker() {
         list.appendChild(renderCourt(players, reservePlayers(), {
             selectedAction,
             record: recordOutcome,
-            substitution: (player, target) => substitution(player, target, backRow),
+            substitution: (player, target) => substitution(player, target, { backRow, inPlay }),
+            playingRole: role => playingRole(role, state),
             refresh: notifyChange,
             counts: player => countsText(player, setAgg, totalAgg),
             flashClass,
@@ -234,12 +235,18 @@ function reservePlayers() {
 
 // The court view's drag and drop counterpart of `substitutionButtons`. `target` is { player }, { libero: n } or
 // { bench: true }; returns the substitution to run, or null if the drop isn't allowed. A libero only comes in
-// for a player for whom `backRow(player)` holds.
-function substitution(player, target, backRow) {
+// for a player for whom `backRow(player)` holds. Dropping the setter on the opposite (or the other way round)
+// records that they swap jobs, which only works while the set is `inPlay`.
+function substitution(player, target, { backRow, inPlay }) {
     const onCourt = liberoOnCourt();
     const isOnCourt = p => ROLE_ORDER.includes(p.role);
     const other = target.player;
     if (other === player) return null;
+
+    const setterPair = ['setter', 'oppositeHitter'];
+    if (other && !player.liberoNo && !other.liberoNo && setterPair.includes(player.role) && setterPair.includes(other.role)) {
+        return inPlay ? () => recordSetterSwap() : null;
+    }
 
     if (!player.role) {
         return other && isOnCourt(other) && !other.liberoNo ? () => exchangeWithBench(other.id, player.id) : null;

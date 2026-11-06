@@ -1,6 +1,6 @@
 // Score corrections and the end-of-set / end-of-match prompts.
-import { getCurrentSet, setCurrentSet, recordManualPoint, recordRotate, recordSwitchServe, undoLastAction } from './actions.js';
-import { replaySet, isSetOver, getMatchScore, isMatchOver, getTeamNames } from './match.js';
+import { getCurrentSet, setCurrentSet, recordManualPoint, recordRotate, recordSwitchServe, recordSetterSwap, undoLastAction } from './actions.js';
+import { replaySet, isSetOver, getMatchScore, isMatchOver, getTeamNames, rotationOf } from './match.js';
 import { el, button, notifyChange } from './dom.js';
 import { openModal } from './modal.js';
 
@@ -66,7 +66,8 @@ export function openAdjustModal(resetAction) {
             statusScore.textContent = `${state.us}:${state.them}`;
             const meta = [];
             if (state.serving) meta.push(`${state.serving === 'us' ? names.team : names.opponent} serves`);
-            if (state.setterPos) meta.push(`Rotation ${state.setterPos}`);
+            if (state.setterPos) meta.push(`Rotation ${rotationOf(state)}`);
+            if (state.setterSwapped) meta.push('Setter and opposite swapped');
             statusMeta.textContent = meta.join(' · ');
         };
         const pointButton = (name, className, to) => {
@@ -88,6 +89,7 @@ export function openAdjustModal(resetAction) {
         grid.appendChild(button('Rotate forward', 'btn', act(() => recordRotate(1))));
         grid.appendChild(button('Rotate back', 'btn', act(() => recordRotate(-1))));
         grid.appendChild(button('Switch serve', 'btn adjust-wide', act(() => recordSwitchServe())));
+        grid.appendChild(button('Swap setter ⇄ opposite', 'btn adjust-wide', act(() => recordSetterSwap())));
         modal.appendChild(grid);
         modal.appendChild(el('p', 'modal-text muted', 'Points added here count for score and rotation, not for player stats. Use Undo to remove a wrong entry.'));
 

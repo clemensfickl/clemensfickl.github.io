@@ -113,7 +113,7 @@ function renderCell({ player, pos, active }, ctx) {
 
     const head = el('div', 'cp-head');
     const serving = ctx.selectedAction === 'Serv' && active && pos === 1;
-    const role = player.liberoNo ? ctx.liberoLabel(player.liberoNo) : SHORT[player.role];
+    const role = player.liberoNo ? ctx.liberoLabel(player.liberoNo) : SHORT[ctx.playingRole(player.role)];
     head.appendChild(el('span', serving ? 'cp-role cp-serve' : 'cp-role', serving ? 'Serve' : role));
     head.appendChild(el('span', 'cp-counts', ctx.counts(player)));
     cell.appendChild(head);

@@ -1,6 +1,6 @@
 // Scoreboard shown below the tabs on every screen: one row per team with the points of every set.
 import { getCurrentSet, getEvents } from './actions.js';
-import { replaySet, getTeamNames, isSetOver, isSetInPlay } from './match.js';
+import { replaySet, getTeamNames, isSetOver, isSetInPlay, rotationOf } from './match.js';
 import { setsWithEvents } from './stats.js';
 import { el } from './dom.js';
 
@@ -22,7 +22,7 @@ export function renderScoreboard() {
 
     const meta = el('div', 'sb-meta');
     meta.appendChild(el('span', null, `Set ${current}`));
-    if (state.setterPos) meta.appendChild(el('span', null, `Rot ${state.setterPos}`));
+    if (state.setterPos) meta.appendChild(el('span', null, `Rot ${rotationOf(state)}`));
     board.appendChild(meta);
 }
 

@@ -54,6 +54,11 @@ export function recordSwitchServe() {
     record({ type: 'switchServe' });
 }
 
+// Double substitution: the players in the setter and opposite slots swap jobs (and swap back the same way).
+export function recordSetterSwap() {
+    record({ type: 'setterSwap' });
+}
+
 export function undoLastAction() {
     if (events.length === 0) return false;
     events.pop();

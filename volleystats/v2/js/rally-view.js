@@ -117,7 +117,7 @@ export function buildPointLog(sets) {
             const li = el('li', `point-item ${entry.winner}`);
             li.appendChild(el('span', 'point-score', `${entry.us}:${entry.them}`));
             li.appendChild(renderDescription(entry, playersById, names));
-            if (entry.setterPos) li.appendChild(el('span', 'point-rot', `R${entry.setterPos}`));
+            if (entry.rotation) li.appendChild(el('span', 'point-rot', `R${entry.rotation}`));
             list.appendChild(li);
         });
         details.appendChild(list);
@@ -143,7 +143,7 @@ export function pointLogCsvRows() {
                 their_score: entry.them,
                 winner: teamName(entry.winner),
                 served_by: teamName(entry.servedBy),
-                rotation: entry.setterPos || '',
+                rotation: entry.rotation || '',
                 type: e.type,
                 player: e.type === 'player' ? playersById[e.playerId] || 'Unknown' : '',
                 action: e.action || '',

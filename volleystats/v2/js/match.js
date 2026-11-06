@@ -106,7 +106,8 @@ export function replaySet(set, events = getEvents()) {
         log: [],
         hasSetup: !!setup,
         serving: setup ? (setup.weServeFirst ? 'us' : 'them') : null,
-        setterPos: setup ? setup.setterStart : null
+        setterPos: setup ? setup.setterStart : null,
+        setterSwapped: false
     };
 
     events.forEach(e => {
@@ -119,19 +120,38 @@ export function replaySet(set, events = getEvents()) {
             if (state.serving) state.serving = state.serving === 'us' ? 'them' : 'us';
             return;
         }
+        if (e.type === 'setterSwap') {
+            state.setterSwapped = !state.setterSwapped;
+            return;
+        }
         const winner = pointWinner(e);
         if (!winner) return;
 
         const servedBy = state.serving;
-        const setterPos = state.setterPos;
+        const rotation = rotationOf(state);
         state[winner]++;
         if (winner === 'us' && servedBy === 'them' && state.setterPos) {
             state.setterPos = rotate(state.setterPos);
         }
         state.serving = winner;
-        state.log.push({ us: state.us, them: state.them, winner, event: e, servedBy, setterPos });
+        state.log.push({ us: state.us, them: state.them, winner, event: e, servedBy, rotation });
     });
     return state;
+}
+
+// The rotation is where the playing setter stands. `setterPos` is the setter slot's position, which a double
+// substitution hands to the opposite; the slots still decide who stands where.
+export function rotationOf(state) {
+    if (!state.setterPos) return null;
+    return state.setterSwapped ? courtPosition('oppositeHitter', state.setterPos) : state.setterPos;
+}
+
+// The role a slot's player currently plays: setter and opposite trade places during a double substitution.
+export function playingRole(role, state) {
+    if (!state.setterSwapped) return role;
+    if (role === 'setter') return 'oppositeHitter';
+    if (role === 'oppositeHitter') return 'setter';
+    return role;
 }
 
 // Per rotation (setter position): points won and lost, split by whether we served the rally.
@@ -140,8 +160,8 @@ export function rotationStats(sets, events = getEvents()) {
     for (let r = 1; r <= 6; r++) rows[r] = { won: 0, lost: 0, servRallies: 0, servWon: 0, recvRallies: 0, recvWon: 0 };
 
     sets.forEach(set => replaySet(set, events).log.forEach(entry => {
-        if (!entry.setterPos) return;
-        const row = rows[entry.setterPos];
+        if (!entry.rotation) return;
+        const row = rows[entry.rotation];
         const won = entry.winner === 'us';
         if (won) row.won++;
         else row.lost++;
