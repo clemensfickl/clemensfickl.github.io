@@ -115,11 +115,14 @@ function actionForServe(state) {
     return state.serving === 'us' ? 'Serv' : 'Recv';
 }
 
-function selectNextAction(action, outcome) {
+// After a rally continues past a serve, reception or block touch, an attack is usually next.
+const LEADS_TO_ATTACK = ['Serv', 'Recv', 'Blk'];
+
+function selectNextAction(action) {
     const events = getEvents();
     if (pointWinner(events[events.length - 1])) {
         selectedAction = actionForServe(replaySet(getCurrentSet()));
-    } else if (action === 'Serv' || action === 'Recv') {
+    } else if (LEADS_TO_ATTACK.includes(action)) {
         selectedAction = 'Atk';
     }
 }
@@ -171,7 +174,7 @@ function recordOutcome(player, outcome) {
     if (!selectedAction) return alert('Select an action first');
     const action = selectedAction;
     recordAndCheckSetEnd(() => recordPlayerAction(player.id, action, outcome), resetAction);
-    selectNextAction(action, outcome);
+    selectNextAction(action);
     notifyChange();
 }
 
