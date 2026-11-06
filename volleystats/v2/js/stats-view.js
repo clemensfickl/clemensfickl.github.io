@@ -5,10 +5,13 @@ import { aggregate, winnersErrors, sumOpp, setsWithEvents } from './stats.js';
 import { getTeamNames, clearSetSetups } from './match.js';
 import { clearHistory } from './history.js';
 import { buildRotationTable, buildPointLog, pointLogCsvRows } from './rally-view.js';
-import { el, notifyChange } from './dom.js';
+import { el, button, notifyChange } from './dom.js';
 import { exportCSV } from './export-csv.js';
 
+const TABS = [['players', 'Players'], ['rotations', 'Rotations'], ['points', 'Point log']];
+
 let statsFilter = 'total';
+let statsTab = 'players';
 
 export function initStats() {
     document.getElementById('export-csv').addEventListener('click', () => {
@@ -33,6 +36,8 @@ export function renderStats() {
     if (statsFilter !== 'total' && !sets.includes(Number(statsFilter))) statsFilter = 'total';
 
     renderFilter(sets);
+    document.getElementById('export-csv').hidden = statsTab !== 'players';
+    document.getElementById('export-points-csv').hidden = statsTab !== 'points';
     const disp = document.getElementById('stats-display');
     disp.innerHTML = '';
     if (events.length === 0) {
@@ -40,20 +45,42 @@ export function renderStats() {
         return;
     }
 
+    disp.appendChild(renderTabs());
     const filteredSets = statsFilter === 'total' ? sets : [Number(statsFilter)];
-    disp.appendChild(section('Players', buildStatsTable(aggregate(events, statsFilter)), 'table-card'));
-    const rotations = buildRotationTable(filteredSets);
-    if (rotations) {
-        disp.appendChild(section('Rotations', rotations, 'table-card',
-            'Rotation = setter position. Side-out: points won when receiving. Break: points won when serving.'));
+    if (statsTab === 'players') {
+        disp.appendChild(section(buildStatsTable(aggregate(events, statsFilter)), 'table-card'));
+    } else if (statsTab === 'rotations') {
+        const rotations = buildRotationTable(filteredSets);
+        disp.appendChild(rotations
+            ? section(rotations, 'table-card', 'Rotation = setter position. Side-out: points won when receiving. Break: points won when serving.')
+            : emptyTab('No points with a known rotation yet. Set the lineup to track rotations.'));
+    } else {
+        const pointLog = buildPointLog(filteredSets);
+        disp.appendChild(pointLog ? section(pointLog) : emptyTab('No points recorded yet.'));
     }
-    const pointLog = buildPointLog(filteredSets);
-    if (pointLog) disp.appendChild(section('Point log', pointLog));
 }
 
-function section(title, content, cardClass = '', note = '') {
+function renderTabs() {
+    const tabs = el('div', 'action-select-wrap stats-tabs');
+    tabs.setAttribute('role', 'tablist');
+    TABS.forEach(([tab, label]) => {
+        const btn = button(label, 'action-select-btn' + (tab === statsTab ? ' active' : ''), () => {
+            statsTab = tab;
+            renderStats();
+        });
+        btn.setAttribute('role', 'tab');
+        btn.setAttribute('aria-selected', String(tab === statsTab));
+        tabs.appendChild(btn);
+    });
+    return tabs;
+}
+
+function emptyTab(text) {
+    return el('p', 'empty-state', text);
+}
+
+function section(content, cardClass = '', note = '') {
     const wrap = el('section', 'stats-section');
-    wrap.appendChild(el('h3', null, title));
     const card = el('div', `card ${cardClass}`.trim());
     card.appendChild(content);
     wrap.appendChild(card);
