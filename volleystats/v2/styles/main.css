@@ -559,6 +559,22 @@ select {
 .cp-btn.neutral { background: var(--neutral); }
 .cp-btn.negative { background: var(--negative); }
 
+/* Confirms a recorded action on the player or opponent group that got it. */
+.flash {
+    animation: flash 0.7s ease-out;
+}
+
+.flash-positive { --flash-color: var(--positive); }
+.flash-neutral { --flash-color: var(--neutral); }
+.flash-negative { --flash-color: var(--negative); }
+
+@keyframes flash {
+    from {
+        box-shadow: 0 0 0 3px var(--flash-color);
+        background-color: color-mix(in srgb, var(--flash-color) 25%, white);
+    }
+}
+
 .court-player-cell[data-source] {
     cursor: grab;
     touch-action: none;

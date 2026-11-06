@@ -22,6 +22,7 @@ const OPP_ACTIONS = {
 const POSITION_FILTER = { Serv: [1], Blk: FRONT_ROW };
 
 let selectedAction = null;
+let flash = null;
 const promptedSets = new Set();
 
 export function initTracker() {
@@ -76,6 +77,7 @@ export function renderTracker() {
             substitution: (player, target) => substitution(player, target, backRow),
             refresh: notifyChange,
             counts: player => countsText(player, setAgg, totalAgg),
+            flashClass,
             liberoLabel
         }));
     } else {
@@ -83,6 +85,7 @@ export function renderTracker() {
     }
     list.appendChild(renderOpponentRow(setAgg, totalAgg, blocked.them));
     container.appendChild(list);
+    flash = null;
 
     if (!state.hasSetup && !promptedSets.has(set)) {
         promptedSets.add(set);
@@ -175,7 +178,18 @@ function recordOutcome(player, outcome) {
     const action = selectedAction;
     recordAndCheckSetEnd(() => recordPlayerAction(player.id, action, outcome), resetAction);
     selectNextAction(action);
+    confirmRecorded(player.id, outcome);
     notifyChange();
+}
+
+// The next render flashes whatever was just recorded, so it's clear the tap counted.
+function confirmRecorded(key, outcome) {
+    flash = { key, outcome };
+    navigator.vibrate?.(25);
+}
+
+function flashClass(key) {
+    return flash && flash.key === key ? ` flash flash-${flash.outcome}` : '';
 }
 
 function countsText(player, setAgg, totalAgg) {
@@ -257,7 +271,7 @@ function renderPlayerRow(player, pos, active, setAgg, totalAgg) {
     let className = 'onfield-row';
     if (!active) className += ' inactive';
     if (player.liberoNo) className += ' libero';
-    const row = el('div', className);
+    const row = el('div', className + flashClass(player.id));
     const name = el('div', 'onfield-name');
     if (pos) name.appendChild(el('span', 'pos-badge' + (FRONT_ROW.includes(pos) ? ' front' : ''), pos));
     name.appendChild(document.createTextNode(player.liberoNo ? `${player.name} (${liberoLabel(player.liberoNo)})` : player.name));
@@ -290,10 +304,10 @@ function renderOpponentRow(setAgg, totalAgg, blocked) {
         let className = 'opp-group';
         if (outcomes.length === 1) className += ' single';
         if (disabled) className += ' disabled';
-        const group = el('div', className);
+        const group = el('div', className + flashClass(`opp-${action}`));
         group.appendChild(el('span', 'opp-group-label', action));
-        if (outcomes.includes('positive')) group.appendChild(opponentButton('+', 'positive', () => recordOppPoint(action)));
-        if (outcomes.includes('negative')) group.appendChild(opponentButton('-', 'negative', () => recordOppError(action)));
+        if (outcomes.includes('positive')) group.appendChild(opponentButton('+', 'positive', action, () => recordOppPoint(action)));
+        if (outcomes.includes('negative')) group.appendChild(opponentButton('-', 'negative', action, () => recordOppError(action)));
         group.querySelectorAll('button').forEach(btn => { btn.disabled = disabled; });
         controls.appendChild(group);
     });
@@ -305,10 +319,11 @@ function renderOpponentRow(setAgg, totalAgg, blocked) {
     return row;
 }
 
-function opponentButton(symbol, outcome, recordFn) {
+function opponentButton(symbol, outcome, action, recordFn) {
     return button(symbol, `opp-btn ${outcome}`, () => {
         recordAndCheckSetEnd(recordFn, resetAction);
         selectedAction = actionForServe(replaySet(getCurrentSet()));
+        confirmRecorded(`opp-${action}`, outcome);
         notifyChange();
     });
 }

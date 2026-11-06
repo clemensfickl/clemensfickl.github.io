@@ -109,7 +109,7 @@ function renderCell({ player, pos, active }, ctx) {
     let className = 'court-player-cell';
     if (!active) className += ' inactive';
     if (player.liberoNo) className += ' libero';
-    const cell = el('div', className);
+    const cell = el('div', className + ctx.flashClass(player.id));
 
     const head = el('div', 'cp-head');
     const serving = ctx.selectedAction === 'Serv' && active && pos === 1;
