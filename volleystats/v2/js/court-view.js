@@ -32,7 +32,8 @@ function playingSpot(role, pos, unswitchedFront) {
 // `players`: [{ player, pos, active }] with the rotational position.
 // `ctx.substitution(player, target)` returns the substitution for a drop, or null if it isn't allowed;
 // a target is { player }, { libero: n } or { bench: true }. `ctx.orientation` as in court-layout.js.
-// `ctx.unswitchedFront`: the front outside and opposite stay on their rotational positions.
+// `ctx.unswitchedFront`: the front outside and opposite stay on their rotational positions. `ctx.belowCourt`: an
+// optional element shown between the court and the reserve.
 export function renderCourt(players, reserve, ctx) {
     const byId = Object.fromEntries([...players.map(e => e.player), ...reserve.bench, ...reserve.liberos.map(s => s.player)]
         .filter(Boolean).map(p => [p.id, p]));
@@ -96,6 +97,7 @@ export function renderCourt(players, reserve, ctx) {
         court.appendChild(cell);
     });
     wrap.appendChild(courtFrame(ctx.orientation, court));
+    if (ctx.belowCourt) wrap.appendChild(ctx.belowCourt);
     wrap.appendChild(renderReserve(reserve, ctx, { draggable, target }));
 
     const selected = byId[selectedId];

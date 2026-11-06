@@ -104,11 +104,11 @@ export function renderTracker() {
     if (getActionsLayout() !== 'list' && state.setterPos) {
         const backRow = player => !FRONT_ROW.includes(courtPosition(player.role, state.setterPos));
         const r1Reception = inPlay && rotationOf(state) === 1 && state.serving === 'them';
-        if (r1Reception) list.appendChild(renderR1Toggle());
         list.appendChild(renderCourt(players, reservePlayers(), {
             selectedAction,
             orientation: courtOrientation(set, state.ourSide),
             unswitchedFront: r1Reception && getR1OppositeOnFour(),
+            belowCourt: r1Reception ? renderR1Toggle() : null,
             record: recordOutcome,
             substitution: (player, target) => {
                 const run = substitution(player, target, { backRow, inPlay });
