@@ -90,7 +90,8 @@ export function renderTracker() {
 
     const events = getEvents();
     const setAgg = aggregate(events, set);
-    const totalAgg = aggregate(events);
+    // The match totals in brackets only differ from the set once another set has events.
+    const totalAgg = events.some(e => e.set !== set) ? aggregate(events) : null;
 
     const container = document.getElementById('action-buttons');
     container.innerHTML = '';
@@ -253,10 +254,15 @@ function flashClass(key) {
     return flash && flash.key === key ? ` flash flash-${flash.outcome}` : '';
 }
 
+// `total` is shown in brackets, unless there is none.
+function withTotal(current, total) {
+    return total == null ? `${current}` : `${current}(${total})`;
+}
+
 function countsText(player, setAgg, totalAgg) {
     const cur = winnersErrors(playerCounts(setAgg, player.id));
-    const total = winnersErrors(playerCounts(totalAgg, player.id));
-    return `+${cur.winners}(${total.winners}) -${cur.errors}(${total.errors})`;
+    const total = totalAgg && winnersErrors(playerCounts(totalAgg, player.id));
+    return `+${withTotal(cur.winners, total?.winners)} -${withTotal(cur.errors, total?.errors)}`;
 }
 
 // Liberos are substituted with the libero buttons only; while one is on court, only that player can swap.
@@ -380,8 +386,8 @@ function renderOpponentRow(setAgg, totalAgg, blocked) {
     });
     row.appendChild(controls);
 
-    const points = `+${sumOpp(setAgg.oppPoints)}(${sumOpp(totalAgg.oppPoints)})`;
-    const errors = `-${sumOpp(setAgg.oppErrors)}(${sumOpp(totalAgg.oppErrors)})`;
+    const points = `+${withTotal(sumOpp(setAgg.oppPoints), totalAgg && sumOpp(totalAgg.oppPoints))}`;
+    const errors = `-${withTotal(sumOpp(setAgg.oppErrors), totalAgg && sumOpp(totalAgg.oppErrors))}`;
     row.appendChild(el('div', 'player-counts', `${points} ${errors}`));
     return row;
 }
