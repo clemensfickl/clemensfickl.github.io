@@ -1,6 +1,6 @@
 // Players tab tables built from rallies.
 import { getPlayers } from './players.js';
-import { servingStats, attackDistribution } from './rally-stats.js';
+import { servingStats, attackDistribution, plusMinus } from './rally-stats.js';
 import { rateCell, tableHead } from './rally-view.js';
 import { el } from './dom.js';
 
@@ -52,6 +52,27 @@ export function buildAttackDistributionTable(sets) {
     columns.forEach(key => tr.appendChild(el('td', null, total[key])));
     tfoot.appendChild(tr);
     table.appendChild(tfoot);
+    return table;
+}
+
+export function buildPlusMinusTable(sets) {
+    const stats = plusMinus(sets);
+    const rows = getPlayers().filter(p => stats[p.id]).map(p => [p.name, stats[p.id]]);
+    if (rows.length === 0) return null;
+
+    const table = el('table', 'stats-table rotation-table');
+    table.appendChild(tableHead(['Player', 'Won', 'Lost', '+/−']));
+    const tbody = el('tbody');
+    rows.forEach(([name, s]) => {
+        const diff = s.won - s.lost;
+        const tr = el('tr');
+        tr.appendChild(el('td', 'player-name-col', name));
+        tr.appendChild(el('td', 'stat-positive', s.won));
+        tr.appendChild(el('td', 'stat-negative', s.lost));
+        tr.appendChild(el('td', diff > 0 ? 'stat-positive' : diff < 0 ? 'stat-negative' : null, diff > 0 ? `+${diff}` : diff < 0 ? `−${-diff}` : '0'));
+        tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
     return table;
 }
 

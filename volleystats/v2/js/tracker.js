@@ -1,12 +1,12 @@
 // Actions screen: records player actions and opponent errors and points for the current set.
-import { ACTIONS, recordPlayerAction, recordOppError, recordOppPoint, recordSetterSwap, getEvents, getCurrentSet, setCurrentSet } from './actions.js';
+import { ACTIONS, pointWinner, recordPlayerAction, recordOppError, recordOppPoint, recordSetterSwap, getEvents, getCurrentSet, setCurrentSet } from './actions.js';
 import { undoable, undo, redo, canUndo, canRedo, bindViewState } from './history.js';
 import { showToast } from './toast.js';
 import { openHistoryModal } from './history-modal.js';
 import { icon } from './icons.js';
 import { getPlayers, getLiberos, liberoOnCourt, liberoSlot, swapWithLibero, exchangeWithBench } from './players.js';
 import { aggregate, playerCounts, winnersErrors, sumOpp } from './stats.js';
-import { replaySet, pointWinner, courtPosition, playingRole, rotationOf, getTeamNames, isSetOver, isSetInPlay, getMatchScore, isMatchOver, ROLE_ORDER, FRONT_ROW } from './match.js';
+import { replaySet, courtPosition, playingRole, rotationOf, getTeamNames, isSetOver, isSetInPlay, getMatchScore, isMatchOver, ROLE_ORDER, FRONT_ROW } from './match.js';
 import { openSetupModal } from './setup-modal.js';
 import { recordAndCheckSetEnd, openAdjustModal } from './set-flow.js';
 import { el, button, notifyChange } from './dom.js';

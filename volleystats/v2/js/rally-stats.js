@@ -99,6 +99,16 @@ export function pressureStats(sets) {
     return phases;
 }
 
+// Per player: points won and lost while on court. Only points recorded with their lineup count.
+export function plusMinus(sets) {
+    const stats = {};
+    rallies(sets).forEach(({ event, winner }) => (event.onCourt || []).forEach(id => {
+        const s = stats[id] || (stats[id] = { won: 0, lost: 0 });
+        s[winner === 'us' ? 'won' : 'lost']++;
+    }));
+    return stats;
+}
+
 // Our attacks per player, in total and per rotation (where the rotation is known).
 // Returns { total: {all, [rotation]}, players: {id: {all, [rotation]}} }.
 export function attackDistribution(sets) {

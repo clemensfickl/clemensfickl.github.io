@@ -1,7 +1,29 @@
 // Event log: every tap on the Actions screen appends one event. All statistics are derived from it.
 import { load, save, remove } from './storage.js';
+import { onCourtIds } from './players.js';
 
 export const ACTIONS = ['Serv', 'Recv', 'Atk', 'Blk', 'Oth'];
+
+// A + on these ends the rally with our point; Recv + only keeps the rally going.
+export const SCORING_ACTIONS = ['Serv', 'Atk', 'Blk', 'Oth'];
+
+// Returns 'us', 'them', or null if the event did not end a rally.
+export function pointWinner(event) {
+    switch (event.type) {
+        case 'player':
+            if (event.outcome === 'negative') return 'them';
+            if (event.outcome === 'positive' && SCORING_ACTIONS.includes(event.action)) return 'us';
+            return null;
+        case 'oppError':
+            return 'us';
+        case 'oppPoint':
+            return 'them';
+        case 'manualPoint':
+            return event.to;
+        default:
+            return null;
+    }
+}
 
 let events = [];
 let currentSet = 1;
@@ -24,8 +46,11 @@ export function setCurrentSet(setNumber) {
     save('currentSet', currentSet);
 }
 
+// Points also store who was on court, for plus/minus. Events recorded before this have no `onCourt`.
 function record(event) {
-    events.push({ ...event, set: currentSet });
+    const entry = { ...event, set: currentSet };
+    if (pointWinner(entry)) entry.onCourt = onCourtIds();
+    events.push(entry);
     save('events', events);
 }
 

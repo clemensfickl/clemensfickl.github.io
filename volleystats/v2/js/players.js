@@ -108,6 +108,11 @@ function cover(libero, role) {
     save('lastLibero', libero.liberoNo);
 }
 
+// The six players on court right now, including a libero covering someone.
+export function onCourtIds() {
+    return players.filter(p => p.role && !p.role.startsWith('libero')).map(p => p.id);
+}
+
 // The lineup as planned, ignoring a libero who currently covers someone: role key -> player.
 export function baseLineup() {
     const lineup = {};

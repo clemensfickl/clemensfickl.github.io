@@ -1,7 +1,7 @@
 // Match logic derived from the event log: who won each point, the score, serve and rotation.
 import { load, save } from './storage.js';
-import { getEvents } from './actions.js';
-import { SCORING_ACTIONS, setsWithEvents } from './stats.js';
+import { getEvents, pointWinner } from './actions.js';
+import { setsWithEvents } from './stats.js';
 
 // Serving order of a 5-1 lineup: the opposite stands across from the setter, middles and outsides across from each other.
 export const ROLE_ORDER = ['setter', 'outsideHitter1', 'middleBlocker1', 'oppositeHitter', 'outsideHitter2', 'middleBlocker2'];
@@ -89,24 +89,6 @@ export function getAppliedLiberoTarget() {
 export function setAppliedLiberoTarget(key) {
     config.liberoTarget = key;
     saveMatch();
-}
-
-// Returns 'us', 'them', or null if the event did not end a rally.
-export function pointWinner(event) {
-    switch (event.type) {
-        case 'player':
-            if (event.outcome === 'negative') return 'them';
-            if (event.outcome === 'positive' && SCORING_ACTIONS.includes(event.action)) return 'us';
-            return null;
-        case 'oppError':
-            return 'us';
-        case 'oppPoint':
-            return 'them';
-        case 'manualPoint':
-            return event.to;
-        default:
-            return null;
-    }
 }
 
 // Without a setup, serve becomes known after the first point and the rotation stays unknown.

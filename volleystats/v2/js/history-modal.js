@@ -1,8 +1,8 @@
 // The undo history of the current set: newest steps on top, undone ones above the current state.
-import { getCurrentSet } from './actions.js';
+import { getCurrentSet, pointWinner } from './actions.js';
 import { getTimeline, canUndo, canRedo } from './history.js';
 import { getPlayers } from './players.js';
-import { replaySet, pointWinner, getTeamNames } from './match.js';
+import { replaySet, getTeamNames } from './match.js';
 import { describeEvent, renderDescription } from './rally-view.js';
 import { el, button } from './dom.js';
 import { icon } from './icons.js';

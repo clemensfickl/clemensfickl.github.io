@@ -8,7 +8,7 @@ import { buildRotationTable, buildPointLog, pointLogCsvRows } from './rally-view
 import { buildEfficiencyTable } from './efficiency-view.js';
 import { buildPointSources } from './point-sources.js';
 import { buildReceptionTable, buildPressureTable, buildSetComparisonTable } from './team-view.js';
-import { buildServingTable, buildAttackDistributionTable } from './player-rally-view.js';
+import { buildServingTable, buildAttackDistributionTable, buildPlusMinusTable } from './player-rally-view.js';
 import { el, button, notifyChange } from './dom.js';
 import { exportCSV } from './export-csv.js';
 
@@ -76,6 +76,14 @@ export function renderStats() {
                 title: 'Attack distribution',
                 cardClass: 'table-card',
                 note: 'Share of our attacks, overall and per rotation (setter position). Highlighted: who got the most.'
+            }));
+        }
+        const plusMinusTable = buildPlusMinusTable(filteredSets);
+        if (plusMinusTable) {
+            disp.appendChild(section(plusMinusTable, {
+                title: 'Plus/minus',
+                cardClass: 'table-card',
+                note: 'Points won and lost while the player was on court. Points recorded before this was added are not counted.'
             }));
         }
     } else if (statsTab === 'team') {

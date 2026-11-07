@@ -1,8 +1,5 @@
 // Aggregates the event log into per-player and opponent counts.
-import { ACTIONS } from './actions.js';
-
-// A + on these ends the rally with our point; Recv + only keeps the rally going.
-export const SCORING_ACTIONS = ['Serv', 'Atk', 'Blk', 'Oth'];
+import { ACTIONS, SCORING_ACTIONS } from './actions.js';
 
 function emptyPlayerCounts() {
     return Object.fromEntries(ACTIONS.map(a => [a, { positive: 0, neutral: 0, negative: 0 }]));
