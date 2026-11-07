@@ -1,7 +1,7 @@
 // Players tab tables built from rallies.
 import { getPlayers } from './players.js';
 import { servingStats, attackDistribution, plusMinus } from './rally-stats.js';
-import { rateCell, tableHead, markBest, rateOrNull } from './rally-view.js';
+import { rateCell, tableHead, shadeColumn, rateOrNull } from './rally-view.js';
 import { el } from './dom.js';
 
 export function buildServingTable(sets) {
@@ -21,8 +21,8 @@ export function buildServingTable(sets) {
         runs.push({ td: tr.children[2], value: s.bestRun });
         tbody.appendChild(tr);
     });
-    markBest(breaks);
-    markBest(runs);
+    shadeColumn(breaks, 'higher');
+    shadeColumn(runs, 'higher');
     table.appendChild(tbody);
     const total = rows.reduce((sum, [, s]) => ({
         serves: sum.serves + s.serves, won: sum.won + s.won, bestRun: Math.max(sum.bestRun, s.bestRun)
@@ -33,7 +33,7 @@ export function buildServingTable(sets) {
     return table;
 }
 
-// Each column shows the players' share of that column's attacks; the biggest share per column is highlighted.
+// Each column shows the players' share of that column's attacks.
 export function buildAttackDistributionTable(sets) {
     const { total, players } = attackDistribution(sets);
     if (total.all === 0) return null;
@@ -55,7 +55,7 @@ export function buildAttackDistributionTable(sets) {
         });
         tbody.appendChild(tr);
     });
-    cells.forEach(column => markBest(column));
+    cells.forEach(column => shadeColumn(column, 'higher'));
     table.appendChild(tbody);
     const tfoot = el('tfoot');
     const tr = el('tr');
@@ -86,7 +86,7 @@ export function buildPlusMinusTable(sets) {
         tr.appendChild(td);
         tbody.appendChild(tr);
     });
-    markBest(diffs);
+    shadeColumn(diffs, 'around');
     table.appendChild(tbody);
     return table;
 }

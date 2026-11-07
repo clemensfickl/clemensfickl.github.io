@@ -50,7 +50,7 @@ export function renderStats() {
             disp.appendChild(section(efficiency, {
                 title: 'Efficiency',
                 cardClass: 'table-card',
-                note: 'Share of attempts. Good: reception +. Kill: attack point. Eff: kills minus errors per attack. Highlighted: best in each column (lowest for Err), among players with enough attempts.'
+                note: 'Share of attempts. Good: reception +. Kill: attack point. Eff: kills minus errors per attack. Stronger blue: better; stronger red: more errors (or a negative Eff). Players with few attempts stay plain.'
             }));
         }
         const serving = buildServingTable(filteredSets);
@@ -58,7 +58,7 @@ export function renderStats() {
             disp.appendChild(section(serving, {
                 title: 'Serving',
                 cardClass: 'table-card',
-                note: 'Break: rallies won when this player served. Best run: most points in a row in one service turn. Highlighted: the best of each.'
+                note: 'Break: rallies won when this player served. Best run: most points in a row in one service turn. Stronger blue: better.'
             }));
         }
         const distribution = buildAttackDistributionTable(filteredSets);
@@ -66,7 +66,7 @@ export function renderStats() {
             disp.appendChild(section(distribution, {
                 title: 'Attack distribution',
                 cardClass: 'table-card',
-                note: 'Share of our attacks, overall and per rotation (setter position). Highlighted: who got the most.'
+                note: 'Share of our attacks, overall and per rotation (setter position). Stronger blue: more of the attacks.'
             }));
         }
         const plusMinusTable = buildPlusMinusTable(filteredSets);
@@ -74,7 +74,7 @@ export function renderStats() {
             disp.appendChild(section(plusMinusTable, {
                 title: 'Plus/minus',
                 cardClass: 'table-card',
-                note: 'Points won and lost while the player was on court; highlighted: the best +/−. Points recorded before this was added are not counted.'
+                note: 'Points won and lost while the player was on court; blue for plus, red for minus. Points recorded before this was added are not counted.'
             }));
         }
     } else if (statsTab === 'team') {
@@ -104,7 +104,7 @@ function renderTeamTab(disp, sets) {
         }));
     }
     disp.appendChild(rotations
-        ? section(rotations, { title: 'Rotations', cardClass: 'table-card', note: 'Rotation = setter position. Side-out: points won when receiving. Break: points won when serving. Highlighted: strongest (blue) and weakest (red) rotation.' })
+        ? section(rotations, { title: 'Rotations', cardClass: 'table-card', note: 'Rotation = setter position. Side-out: points won when receiving. Break: points won when serving. Blue: better than overall, red: worse.' })
         : section(emptyTab('Set the lineup to track rotations.'), { title: 'Rotations' }));
     if (reception) {
         disp.appendChild(section(reception, {

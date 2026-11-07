@@ -1517,18 +1517,13 @@ select {
     font-weight: 600;
 }
 
-.distribution-table .rate-cell:not(.best-value) {
-    font-weight: 400;
+/* --shade (0-1) from shadeColumn sets the strength. */
+.stats-table .shade-good {
+    background: color-mix(in srgb, var(--primary) calc(var(--shade) * 32%), transparent);
 }
 
-.stats-table .best-value {
-    background: var(--primary-soft);
-    color: var(--primary);
-}
-
-.stats-table .worst-value {
-    background: var(--negative-soft);
-    color: var(--negative);
+.stats-table .shade-bad {
+    background: color-mix(in srgb, var(--negative) calc(var(--shade) * 28%), transparent);
 }
 
 .point-sources {

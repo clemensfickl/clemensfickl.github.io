@@ -42,10 +42,8 @@ export function buildRotationTable(sets) {
         tbody.appendChild(tr);
         Object.keys(total).forEach(key => { total[key] += r[key]; });
     });
-    [sideOuts, breaks].forEach(column => {
-        markBest(column);
-        markWorst(column);
-    });
+    shadeColumn(sideOuts, 'around', total.recvWon / total.recvRallies);
+    shadeColumn(breaks, 'around', total.servWon / total.servRallies);
     table.appendChild(tbody);
     const tfoot = el('tfoot');
     tfoot.appendChild(rotationRow('Overall', total));
@@ -70,23 +68,32 @@ export function rateCell(won, total) {
     return td;
 }
 
-// Highlights the cells with a column's best value: the highest, or the lowest with `lowerIsBetter`.
-// Entries with a null value don't compete, and nothing is highlighted while all competitors tie.
-export function markBest(entries, lowerIsBetter = false, className = 'best-value') {
-    const values = entries.map(e => e.value).filter(v => v !== null);
-    if (values.length < 2) return;
-    const best = lowerIsBetter ? Math.min(...values) : Math.max(...values);
-    if (values.every(v => v === best)) return;
-    entries.forEach(e => {
-        if (e.value === best) e.td.classList.add(className);
+// Shades a column's cells by their value, `entries` being [{ td, value }]:
+// - 'higher': blue, the stronger the closer to the best (highest) value; the lowest gets none.
+// - 'errors': red, the stronger the closer to the highest value; 0 never gets any.
+// - 'around': blue above `center` and red below, the stronger the further away.
+// Entries with a null value stay plain, and nothing is shaded while all values tie.
+export function shadeColumn(entries, scale, center = 0) {
+    const shaded = entries.filter(e => e.value !== null);
+    const values = shaded.map(e => e.value);
+    if (values.length < 2 || values.every(v => v === values[0])) return;
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const furthest = Math.max(...values.map(v => Math.abs(v - center)));
+    shaded.forEach(({ td, value }) => {
+        if (scale === 'higher') shade(td, 'good', (value - min) / (max - min));
+        else if (scale === 'errors') shade(td, 'bad', max > 0 ? value / max : 0);
+        else if (furthest > 0) shade(td, value >= center ? 'good' : 'bad', Math.abs(value - center) / furthest);
     });
 }
 
-export function markWorst(entries, lowerIsBetter = false) {
-    markBest(entries, !lowerIsBetter, 'worst-value');
+function shade(td, tone, strength) {
+    if (strength <= 0) return;
+    td.classList.add(`shade-${tone}`);
+    td.style.setProperty('--shade', strength.toFixed(2));
 }
 
-// A rate competes for best or worst only with a fair share of the attempts, so 1 of 1 doesn't win.
+// A rate is shaded only with a fair share of the attempts, so 1 of 1 doesn't stand out.
 export function rateOrNull(made, attempts, mostAttempts) {
     return attempts >= Math.max(3, mostAttempts / 3) ? made / attempts : null;
 }

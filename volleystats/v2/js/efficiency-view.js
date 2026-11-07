@@ -1,13 +1,14 @@
 // Ratings per player: how often serves, receptions and attacks went well or wrong, relative to their attempts.
 import { getPlayers } from './players.js';
-import { rateCell, markBest, rateOrNull } from './rally-view.js';
+import { rateCell, shadeColumn, rateOrNull } from './rally-view.js';
 import { el } from './dom.js';
 
-// Eff (attack efficiency) is kills minus errors per attempt, so it can be negative. For Err, lower is better.
+// Eff (attack efficiency) is kills minus errors per attempt, so it can be negative. The third entry is the
+// `shadeColumn` scale.
 const COLUMNS = [
-    { action: 'Serv', label: 'Serve', rates: [['Ace', c => c.positive], ['Err', c => c.negative, true]] },
-    { action: 'Recv', label: 'Reception', rates: [['Good', c => c.positive], ['Err', c => c.negative, true]] },
-    { action: 'Atk', label: 'Attack', rates: [['Kill', c => c.positive], ['Eff', c => c.positive - c.negative]] }
+    { action: 'Serv', label: 'Serve', rates: [['Ace', c => c.positive, 'higher'], ['Err', c => c.negative, 'errors']] },
+    { action: 'Recv', label: 'Reception', rates: [['Good', c => c.positive, 'higher'], ['Err', c => c.negative, 'errors']] },
+    { action: 'Atk', label: 'Attack', rates: [['Kill', c => c.positive, 'higher'], ['Eff', c => c.positive - c.negative, 'around']] }
 ];
 
 const attempts = c => c.positive + c.neutral + c.negative;
@@ -38,7 +39,7 @@ export function buildEfficiencyTable(agg) {
     const tbody = el('tbody');
     const cells = new Map(COLUMNS.flatMap(col => col.rates.map(rate => [rate, []])));
     rows.forEach(([name, counts]) => tbody.appendChild(efficiencyRow(name, counts, cells)));
-    markBestRates(rows, cells);
+    shadeRates(rows, cells);
     table.appendChild(tbody);
 
     const tfoot = el('tfoot');
@@ -47,7 +48,7 @@ export function buildEfficiencyTable(agg) {
     return table;
 }
 
-// `cells` (rate -> list) collects each player's cells for `markBestRates`; the Team row passes none.
+// `cells` (rate -> list) collects each player's cells for `shadeRates`; the Team row passes none.
 function efficiencyRow(name, counts, cells = null) {
     const tr = el('tr');
     tr.appendChild(el('td', 'player-name-col', name));
@@ -63,12 +64,12 @@ function efficiencyRow(name, counts, cells = null) {
     return tr;
 }
 
-function markBestRates(rows, cells) {
+function shadeRates(rows, cells) {
     COLUMNS.forEach(col => {
         const most = Math.max(...rows.map(([, counts]) => attempts(counts[col.action])));
         col.rates.forEach(rate => {
             const entries = cells.get(rate).map(({ td, made, n }) => ({ td, value: rateOrNull(made, n, most) }));
-            markBest(entries, rate[2] === true);
+            shadeColumn(entries, rate[2]);
         });
     });
 }
