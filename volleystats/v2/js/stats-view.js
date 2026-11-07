@@ -7,7 +7,7 @@ import { clearHistory } from './history.js';
 import { buildRotationTable, buildPointLog, pointLogCsvRows } from './rally-view.js';
 import { buildEfficiencyTable } from './efficiency-view.js';
 import { buildPointSources } from './point-sources.js';
-import { buildReceptionTable } from './team-view.js';
+import { buildReceptionTable, buildPressureTable } from './team-view.js';
 import { buildServingTable, buildAttackDistributionTable } from './player-rally-view.js';
 import { el, button, notifyChange } from './dom.js';
 import { exportCSV } from './export-csv.js';
@@ -104,6 +104,14 @@ function renderTeamTab(disp, sets) {
             title: 'Side-out by reception',
             cardClass: 'table-card',
             note: 'Receiving rallies by the quality of our first reception; an opponent ace counts as an error. First ball: our attack right after the reception scored.'
+        }));
+    }
+    const pressure = buildPressureTable(sets);
+    if (pressure) {
+        disp.appendChild(section(pressure, {
+            title: 'Under pressure',
+            cardClass: 'table-card',
+            note: 'Rallies before and after one team reached 20 points (10 in set 5). Own errors: share of rallies lost to our own error.'
         }));
     }
 }

@@ -31,6 +31,30 @@ export function receptionSideOut(sets) {
     return rows;
 }
 
+export function pressureFrom(set) {
+    return set === 5 ? 10 : 20;
+}
+
+// Rallies before and after one team reached `pressureFrom` points in the set (by the score before the rally).
+export function pressureStats(sets) {
+    const empty = () => ({ rallies: 0, recvRallies: 0, recvWon: 0, servRallies: 0, servWon: 0, ownErrors: 0 });
+    const phases = { early: empty(), late: empty() };
+    rallies(sets).forEach(({ us, them, winner, servedBy, event, set }) => {
+        const before = Math.max(us - (winner === 'us' ? 1 : 0), them - (winner === 'them' ? 1 : 0));
+        const p = phases[before >= pressureFrom(set) ? 'late' : 'early'];
+        p.rallies++;
+        if (servedBy === 'them') {
+            p.recvRallies++;
+            if (winner === 'us') p.recvWon++;
+        } else if (servedBy === 'us') {
+            p.servRallies++;
+            if (winner === 'us') p.servWon++;
+        }
+        if (event.type === 'player' && event.outcome === 'negative') p.ownErrors++;
+    });
+    return phases;
+}
+
 // Our attacks per player, in total and per rotation (where the rotation is known).
 // Returns { total: {all, [rotation]}, players: {id: {all, [rotation]}} }.
 export function attackDistribution(sets) {

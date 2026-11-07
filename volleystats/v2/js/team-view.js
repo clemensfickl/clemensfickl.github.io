@@ -1,5 +1,5 @@
 // Team tab tables built from rallies.
-import { receptionSideOut } from './rally-stats.js';
+import { receptionSideOut, pressureStats, pressureFrom } from './rally-stats.js';
 import { rateCell, tableHead } from './rally-view.js';
 import { el } from './dom.js';
 
@@ -22,6 +22,25 @@ export function buildReceptionTable(sets) {
     const tfoot = el('tfoot');
     tfoot.appendChild(receptionRow('All', total));
     table.appendChild(tfoot);
+    return table;
+}
+
+export function buildPressureTable(sets) {
+    const { early, late } = pressureStats(sets);
+    if (late.rallies === 0) return null;
+    const table = el('table', 'stats-table rotation-table');
+    table.appendChild(tableHead(['Score', 'Side-out', 'Break', 'Own errors']));
+    const tbody = el('tbody');
+    const from = sets.length === 1 ? pressureFrom(sets[0]) : pressureFrom(1);
+    [[`Before ${from}`, early], [`From ${from}`, late]].forEach(([label, p]) => {
+        const tr = el('tr');
+        tr.appendChild(el('td', 'player-name-col', label));
+        tr.appendChild(rateCell(p.recvWon, p.recvRallies));
+        tr.appendChild(rateCell(p.servWon, p.servRallies));
+        tr.appendChild(rateCell(p.ownErrors, p.rallies));
+        tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
     return table;
 }
 
