@@ -552,6 +552,13 @@ select {
     font-weight: 700;
 }
 
+.cp-tags {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 0.2rem;
+}
+
 .cp-role {
     color: #c2410c;
 }

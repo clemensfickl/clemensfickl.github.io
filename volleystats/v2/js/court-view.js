@@ -120,13 +120,15 @@ function renderCell({ player, pos, active, receiver }, ctx) {
 
     const head = el('div', 'cp-head');
     const serving = ctx.selectedAction === 'Serv' && active && pos === 1;
-    const cue = serving ? 'Serve' : receiver ? 'Recv' : null;
     const playing = ctx.playingRole(player.role);
     const role = player.liberoNo ? ctx.liberoLabel(player.liberoNo) : SHORT[playing];
     let roleClass = 'cp-role';
-    if (cue) roleClass += ' cp-cue';
+    if (serving) roleClass += ' cp-cue';
     else if (playing === 'setter' && !player.liberoNo) roleClass += ' setter';
-    head.appendChild(el('span', roleClass, cue || role));
+    const tags = el('span', 'cp-tags');
+    tags.appendChild(el('span', roleClass, serving ? 'Serve' : role));
+    if (receiver) tags.appendChild(el('span', 'cp-role cp-cue', 'Recv'));
+    head.appendChild(tags);
     head.appendChild(el('span', 'cp-counts', ctx.counts(player)));
     cell.appendChild(head);
     cell.appendChild(el('div', 'cp-name', player.name));
