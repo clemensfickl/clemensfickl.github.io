@@ -1332,6 +1332,26 @@ select {
     font-weight: 700;
 }
 
+.distribution-table td,
+.distribution-table th {
+    padding: 0.45rem 0.3rem;
+}
+
+.distribution-table tfoot td {
+    border-top: 2px solid var(--border);
+    color: var(--muted);
+    font-weight: 600;
+}
+
+.distribution-table .rate-cell:not(.top-share) {
+    font-weight: 400;
+}
+
+.distribution-table .top-share {
+    background: var(--primary-soft);
+    color: var(--primary);
+}
+
 .point-sources {
     display: grid;
     gap: 1rem;

@@ -8,7 +8,7 @@ import { buildRotationTable, buildPointLog, pointLogCsvRows } from './rally-view
 import { buildEfficiencyTable } from './efficiency-view.js';
 import { buildPointSources } from './point-sources.js';
 import { buildReceptionTable } from './team-view.js';
-import { buildServingTable } from './player-rally-view.js';
+import { buildServingTable, buildAttackDistributionTable } from './player-rally-view.js';
 import { el, button, notifyChange } from './dom.js';
 import { exportCSV } from './export-csv.js';
 
@@ -68,6 +68,14 @@ export function renderStats() {
                 title: 'Serving',
                 cardClass: 'table-card',
                 note: 'Break: rallies won when this player served. Best run: most points in a row in one service turn.'
+            }));
+        }
+        const distribution = buildAttackDistributionTable(filteredSets);
+        if (distribution) {
+            disp.appendChild(section(distribution, {
+                title: 'Attack distribution',
+                cardClass: 'table-card',
+                note: 'Share of our attacks, overall and per rotation (setter position). Highlighted: who got the most.'
             }));
         }
     } else if (statsTab === 'team') {

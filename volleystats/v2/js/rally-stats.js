@@ -31,6 +31,24 @@ export function receptionSideOut(sets) {
     return rows;
 }
 
+// Our attacks per player, in total and per rotation (where the rotation is known).
+// Returns { total: {all, [rotation]}, players: {id: {all, [rotation]}} }.
+export function attackDistribution(sets) {
+    const total = { all: 0 };
+    const players = {};
+    rallies(sets).forEach(({ rally, rotation }) => rally.forEach(e => {
+        if (!isOur(e, 'Atk')) return;
+        const p = players[e.playerId] || (players[e.playerId] = { all: 0 });
+        p.all++;
+        total.all++;
+        if (rotation) {
+            p[rotation] = (p[rotation] || 0) + 1;
+            total[rotation] = (total[rotation] || 0) + 1;
+        }
+    }));
+    return { total, players };
+}
+
 // Per server: rallies they served, how many we won, and the most points in a row in one service turn.
 // The server is whoever recorded the rally's first serve; a turn without one keeps its last known server.
 export function servingStats(sets) {
