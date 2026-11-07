@@ -1468,21 +1468,36 @@ select {
     font-variant-numeric: tabular-nums;
 }
 
-.score-strip {
+.score-chart {
     display: flex;
-    flex-wrap: wrap;
-    gap: 3px;
+    gap: 0.35rem;
     margin: 0.5rem 0;
 }
 
-.strip-point {
-    width: 9px;
-    height: 9px;
-    border-radius: 2px;
+.score-chart svg {
+    flex: 1;
+    min-width: 0;
+    height: 60px;
 }
 
-.strip-point.us { background: var(--positive); }
-.strip-point.them { background: var(--negative); }
+.score-chart .lead-us { fill: var(--positive); }
+.score-chart .lead-them { fill: var(--negative); }
+
+.score-chart .lead-axis {
+    stroke: var(--border);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+}
+
+.score-chart-scale {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-width: 1.5rem;
+    color: var(--muted);
+    font-size: 0.7rem;
+    text-align: right;
+}
 
 .point-list {
     max-height: 320px;

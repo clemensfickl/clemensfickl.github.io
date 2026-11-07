@@ -3,6 +3,7 @@ import { getEvents } from './actions.js';
 import { getPlayers } from './players.js';
 import { replaySet, rotationStats, getTeamNames } from './match.js';
 import { setsWithEvents } from './stats.js';
+import { buildScoreChart } from './score-chart.js';
 import { el } from './dom.js';
 
 const OUTCOME_SYMBOLS = { positive: '+', neutral: '~', negative: '-' };
@@ -110,13 +111,7 @@ export function buildPointLog(sets) {
         summary.appendChild(el('span', 'point-log-score', `${state.us}:${state.them}`));
         details.appendChild(summary);
 
-        const strip = el('div', 'score-strip');
-        state.log.forEach(entry => {
-            const dot = el('span', `strip-point ${entry.winner}`);
-            dot.title = `${entry.us}:${entry.them}`;
-            strip.appendChild(dot);
-        });
-        details.appendChild(strip);
+        details.appendChild(buildScoreChart(state.log));
 
         const list = el('ol', 'point-list');
         state.log.forEach(entry => {
