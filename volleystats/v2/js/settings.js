@@ -5,8 +5,8 @@ const LAYOUTS = ['list', 'court', 'side'];
 
 // 'list' (by rotation), or where players play: 'court' seen from behind the baseline, 'side' from the sideline.
 export function getActionsLayout() {
-    const layout = load('layout', 'court');
-    return LAYOUTS.includes(layout) ? layout : 'court';
+    const layout = load('layout', 'side');
+    return LAYOUTS.includes(layout) ? layout : 'side';
 }
 
 export function setActionsLayout(layout) {
