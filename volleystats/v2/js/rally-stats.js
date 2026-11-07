@@ -109,20 +109,34 @@ export function plusMinus(sets) {
     return stats;
 }
 
-// Our attacks per player, in total and per rotation (where the rotation is known).
-// Returns { total: {all, [rotation]}, players: {id: {all, [rotation]}} }.
+// Our attacks per player, in total and per rotation (where the rotation is known), next to the team's attacks
+// while that player was on court, so substitutes aren't measured against rallies they didn't play.
+// Rallies recorded without a lineup count as played by everyone.
+// Returns { total, players: {id: { attacks, onCourt }} }, each count being { all, [rotation] }.
 export function attackDistribution(sets) {
     const total = { all: 0 };
+    const withoutLineup = { all: 0 };
     const players = {};
-    rallies(sets).forEach(({ rally, rotation }) => rally.forEach(e => {
-        if (!isOur(e, 'Atk')) return;
-        const p = players[e.playerId] || (players[e.playerId] = { all: 0 });
-        p.all++;
-        total.all++;
-        if (rotation) {
-            p[rotation] = (p[rotation] || 0) + 1;
-            total[rotation] = (total[rotation] || 0) + 1;
+    const add = (counts, rotation, n) => {
+        counts.all += n;
+        if (rotation) counts[rotation] = (counts[rotation] || 0) + n;
+    };
+    const player = id => players[id] || (players[id] = { attacks: { all: 0 }, onCourt: { all: 0 } });
+
+    rallies(sets).forEach(({ rally, rotation, event }) => {
+        const attacks = rally.filter(e => isOur(e, 'Atk'));
+        if (attacks.length === 0) return;
+        attacks.forEach(e => add(player(e.playerId).attacks, rotation, 1));
+        add(total, rotation, attacks.length);
+        if (!event.onCourt) {
+            add(withoutLineup, rotation, attacks.length);
+            return;
         }
+        new Set([...event.onCourt, ...attacks.map(e => e.playerId)])
+            .forEach(id => add(player(id).onCourt, rotation, attacks.length));
+    });
+    Object.values(players).forEach(p => Object.entries(withoutLineup).forEach(([key, n]) => {
+        p.onCourt[key] = (p.onCourt[key] || 0) + n;
     }));
     return { total, players };
 }

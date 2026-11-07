@@ -66,7 +66,7 @@ export function renderStats() {
             disp.appendChild(section(distribution, {
                 title: 'Attack distribution',
                 cardClass: 'table-card',
-                note: 'Share of our attacks, overall and per rotation (setter position). Stronger blue: more of the attacks.'
+                note: 'Share of our attacks while the player was on court, overall and per rotation (setter position). Points recorded before lineups were tracked count as on court. Stronger blue: more of the attacks.'
             }));
         }
         const plusMinusTable = buildPlusMinusTable(filteredSets);

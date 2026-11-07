@@ -33,24 +33,25 @@ export function buildServingTable(sets) {
     return table;
 }
 
-// Each column shows the players' share of that column's attacks.
+// Each cell is the player's share of our attacks while they were on court, per rotation column.
 export function buildAttackDistributionTable(sets) {
     const { total, players } = attackDistribution(sets);
     if (total.all === 0) return null;
     const columns = ['all', 1, 2, 3, 4, 5, 6].filter(key => total[key]);
-    const rows = getPlayers().filter(p => players[p.id]).map(p => [p.name, players[p.id]]);
+    const rows = getPlayers().filter(p => players[p.id]?.attacks.all).map(p => [p.name, players[p.id]]);
 
     const table = el('table', 'stats-table distribution-table');
     table.appendChild(tableHead(['Attacker', ...columns.map(key => (key === 'all' ? 'All' : `R${key}`))]));
     const tbody = el('tbody');
     const cells = columns.map(() => []);
-    rows.forEach(([name, counts]) => {
+    rows.forEach(([name, { attacks, onCourt }]) => {
         const tr = el('tr');
         tr.appendChild(el('td', 'player-name-col', name));
         columns.forEach((key, i) => {
-            const n = counts[key] || 0;
-            const td = n ? rateCell(n, total[key]) : el('td', 'rate-cell', '–');
-            cells[i].push({ td, value: n || null });
+            const n = attacks[key] || 0;
+            const of = onCourt[key] || 0;
+            const td = n ? rateCell(n, of) : el('td', 'rate-cell', '–');
+            cells[i].push({ td, value: n ? n / of : null });
             tr.appendChild(td);
         });
         tbody.appendChild(tr);
