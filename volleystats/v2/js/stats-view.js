@@ -50,7 +50,7 @@ export function renderStats() {
             disp.appendChild(section(efficiency, {
                 title: 'Efficiency',
                 cardClass: 'table-card',
-                note: 'Share of attempts. Good: reception +. Kill: attack point. Eff: kills minus errors per attack.'
+                note: 'Share of attempts. Good: reception +. Kill: attack point. Eff: kills minus errors per attack. Highlighted: best in each column (lowest for Err), among players with enough attempts.'
             }));
         }
         const serving = buildServingTable(filteredSets);

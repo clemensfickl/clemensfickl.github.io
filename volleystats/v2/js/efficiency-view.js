@@ -1,16 +1,20 @@
 // Ratings per player: how often serves, receptions and attacks went well or wrong, relative to their attempts.
 import { getPlayers } from './players.js';
-import { rateCell } from './rally-view.js';
+import { rateCell, markBest } from './rally-view.js';
 import { el } from './dom.js';
 
-// Eff (attack efficiency) is kills minus errors per attempt, so it can be negative.
+// Eff (attack efficiency) is kills minus errors per attempt, so it can be negative. For Err, lower is better.
 const COLUMNS = [
-    { action: 'Serv', label: 'Serve', rates: [['Ace', c => c.positive], ['Err', c => c.negative]] },
-    { action: 'Recv', label: 'Reception', rates: [['Good', c => c.positive], ['Err', c => c.negative]] },
+    { action: 'Serv', label: 'Serve', rates: [['Ace', c => c.positive], ['Err', c => c.negative, true]] },
+    { action: 'Recv', label: 'Reception', rates: [['Good', c => c.positive], ['Err', c => c.negative, true]] },
     { action: 'Atk', label: 'Attack', rates: [['Kill', c => c.positive], ['Eff', c => c.positive - c.negative]] }
 ];
 
 const attempts = c => c.positive + c.neutral + c.negative;
+
+// Only players with a fair share of the attempts compete for the best rate, so 1 of 1 doesn't win.
+const MIN_ATTEMPTS = 3;
+const MIN_SHARE_OF_MOST = 1 / 3;
 
 // `agg` from stats.js `aggregate`. Returns null while no player has a serve, reception or attack.
 export function buildEfficiencyTable(agg) {
@@ -36,7 +40,9 @@ export function buildEfficiencyTable(agg) {
     table.appendChild(thead);
 
     const tbody = el('tbody');
-    rows.forEach(([name, counts]) => tbody.appendChild(efficiencyRow(name, counts)));
+    const cells = new Map(COLUMNS.flatMap(col => col.rates.map(rate => [rate, []])));
+    rows.forEach(([name, counts]) => tbody.appendChild(efficiencyRow(name, counts, cells)));
+    markBestRates(rows, cells);
     table.appendChild(tbody);
 
     const tfoot = el('tfoot');
@@ -45,18 +51,31 @@ export function buildEfficiencyTable(agg) {
     return table;
 }
 
-function efficiencyRow(name, counts) {
+// `cells` (rate -> list) collects each player's cells for `markBestRates`; the Team row passes none.
+function efficiencyRow(name, counts, cells = null) {
     const tr = el('tr');
     tr.appendChild(el('td', 'player-name-col', name));
     COLUMNS.forEach(col => {
         const c = counts[col.action];
-        col.rates.forEach(([, value], i) => {
-            const td = rateCell(value(c), attempts(c));
+        col.rates.forEach((rate, i) => {
+            const td = rateCell(rate[1](c), attempts(c));
             if (i === 0) td.classList.add('group-start');
+            cells?.get(rate).push({ td, made: rate[1](c), n: attempts(c) });
             tr.appendChild(td);
         });
     });
     return tr;
+}
+
+function markBestRates(rows, cells) {
+    COLUMNS.forEach(col => {
+        const most = Math.max(...rows.map(([, counts]) => attempts(counts[col.action])));
+        const minimum = Math.max(MIN_ATTEMPTS, most * MIN_SHARE_OF_MOST);
+        col.rates.forEach(rate => {
+            const entries = cells.get(rate).map(({ td, made, n }) => ({ td, value: n >= minimum ? made / n : null }));
+            markBest(entries, rate[2] === true);
+        });
+    });
 }
 
 function teamCounts(list) {

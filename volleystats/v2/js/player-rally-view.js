@@ -1,7 +1,7 @@
 // Players tab tables built from rallies.
 import { getPlayers } from './players.js';
 import { servingStats, attackDistribution, plusMinus } from './rally-stats.js';
-import { rateCell, tableHead } from './rally-view.js';
+import { rateCell, tableHead, markBest } from './rally-view.js';
 import { el } from './dom.js';
 
 export function buildServingTable(sets) {
@@ -33,18 +33,19 @@ export function buildAttackDistributionTable(sets) {
     const table = el('table', 'stats-table distribution-table');
     table.appendChild(tableHead(['Attacker', ...columns.map(key => (key === 'all' ? 'All' : `R${key}`))]));
     const tbody = el('tbody');
+    const cells = columns.map(() => []);
     rows.forEach(([name, counts]) => {
         const tr = el('tr');
         tr.appendChild(el('td', 'player-name-col', name));
-        columns.forEach(key => {
+        columns.forEach((key, i) => {
             const n = counts[key] || 0;
-            const top = n > 0 && rows.every(([, other]) => (other[key] || 0) <= n);
             const td = n ? rateCell(n, total[key]) : el('td', 'rate-cell', '–');
-            if (top) td.classList.add('top-share');
+            cells[i].push({ td, value: n || null });
             tr.appendChild(td);
         });
         tbody.appendChild(tr);
     });
+    cells.forEach(column => markBest(column));
     table.appendChild(tbody);
     const tfoot = el('tfoot');
     const tr = el('tr');

@@ -1517,11 +1517,11 @@ select {
     font-weight: 600;
 }
 
-.distribution-table .rate-cell:not(.top-share) {
+.distribution-table .rate-cell:not(.best-value) {
     font-weight: 400;
 }
 
-.distribution-table .top-share {
+.stats-table .best-value {
     background: var(--primary-soft);
     color: var(--primary);
 }

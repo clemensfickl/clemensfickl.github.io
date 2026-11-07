@@ -59,6 +59,18 @@ export function rateCell(won, total) {
     return td;
 }
 
+// Highlights the cells with a column's best value: the highest, or the lowest with `lowerIsBetter`.
+// Entries with a null value don't compete, and nothing is highlighted while all competitors tie.
+export function markBest(entries, lowerIsBetter = false) {
+    const values = entries.map(e => e.value).filter(v => v !== null);
+    if (values.length < 2) return;
+    const best = lowerIsBetter ? Math.min(...values) : Math.max(...values);
+    if (values.every(v => v === best)) return;
+    entries.forEach(e => {
+        if (e.value === best) e.td.classList.add('best-value');
+    });
+}
+
 // How an action reads in the point log and history, for whichever team made it. A good reception and every ~
 // keep the rally going.
 const ACTION_LABELS = {
