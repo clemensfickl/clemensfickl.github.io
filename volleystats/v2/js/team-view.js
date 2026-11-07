@@ -1,17 +1,9 @@
 // Team tab tables built from rallies.
 import { receptionSideOut } from './rally-stats.js';
-import { rateCell } from './rally-view.js';
+import { rateCell, tableHead } from './rally-view.js';
 import { el } from './dom.js';
 
 const RECEPTION_ROWS = [['positive', 'Good +'], ['neutral', 'OK ~'], ['negative', 'Error / ace']];
-
-function headRow(labels) {
-    const thead = el('thead');
-    const tr = el('tr');
-    labels.forEach((label, i) => tr.appendChild(el('th', i === 0 ? 'player-name-col' : null, label)));
-    thead.appendChild(tr);
-    return thead;
-}
 
 export function buildReceptionTable(sets) {
     const rows = receptionSideOut(sets);
@@ -21,7 +13,7 @@ export function buildReceptionTable(sets) {
     if (total.rallies === 0) return null;
 
     const table = el('table', 'stats-table rotation-table');
-    table.appendChild(headRow(['Reception', 'Side-out', 'First ball']));
+    table.appendChild(tableHead(['Reception', 'Side-out', 'First ball']));
     const tbody = el('tbody');
     RECEPTION_ROWS.forEach(([quality, label]) => {
         if (rows[quality].rallies) tbody.appendChild(receptionRow(label, rows[quality]));

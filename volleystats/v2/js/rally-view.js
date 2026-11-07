@@ -11,16 +11,19 @@ export function percent(won, total) {
     return total ? `${Math.round((won / total) * 100)}%` : '–';
 }
 
+// A single header row whose first column holds the row labels.
+export function tableHead(labels) {
+    const thead = el('thead');
+    const tr = el('tr');
+    labels.forEach((label, i) => tr.appendChild(el('th', i === 0 ? 'player-name-col' : null, label)));
+    thead.appendChild(tr);
+    return thead;
+}
+
 export function buildRotationTable(sets) {
     const rows = rotationStats(sets);
     const table = el('table', 'stats-table rotation-table');
-    const head = el('tr');
-    ['Rotation', 'Won', 'Lost', 'Side-out', 'Break'].forEach((label, i) => {
-        head.appendChild(el('th', i === 0 ? 'player-name-col' : null, label));
-    });
-    const thead = el('thead');
-    thead.appendChild(head);
-    table.appendChild(thead);
+    table.appendChild(tableHead(['Rotation', 'Won', 'Lost', 'Side-out', 'Break']));
 
     const tbody = el('tbody');
     const total = { won: 0, lost: 0, recvWon: 0, recvRallies: 0, servWon: 0, servRallies: 0 };

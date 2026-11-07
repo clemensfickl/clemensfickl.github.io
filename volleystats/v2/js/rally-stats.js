@@ -30,3 +30,33 @@ export function receptionSideOut(sets) {
     });
     return rows;
 }
+
+// Per server: rallies they served, how many we won, and the most points in a row in one service turn.
+// The server is whoever recorded the rally's first serve; a turn without one keeps its last known server.
+export function servingStats(sets) {
+    const stats = {};
+    let server = null;
+    let run = 0;
+    let lastSet = null;
+    rallies(sets).forEach(({ rally, winner, servedBy, set }) => {
+        if (set !== lastSet || servedBy !== 'us') {
+            server = null;
+            run = 0;
+            lastSet = set;
+            if (servedBy !== 'us') return;
+        }
+        if (isOur(rally[0], 'Serv') && rally[0].playerId !== server) {
+            server = rally[0].playerId;
+            run = 0;
+        }
+        if (!server) return;
+        const s = stats[server] || (stats[server] = { serves: 0, won: 0, bestRun: 0 });
+        s.serves++;
+        if (winner === 'us') {
+            s.won++;
+            run++;
+            s.bestRun = Math.max(s.bestRun, run);
+        }
+    });
+    return stats;
+}
