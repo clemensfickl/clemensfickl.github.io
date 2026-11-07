@@ -2,6 +2,7 @@
 import { load, save } from './storage.js';
 import { getEvents, pointWinner } from './actions.js';
 import { setsWithEvents } from './stats.js';
+import { uuidv4 } from './ids.js';
 
 // Serving order of a 5-1 lineup: the opposite stands across from the setter, middles and outsides across from each other.
 export const ROLE_ORDER = ['setter', 'outsideHitter1', 'middleBlocker1', 'oppositeHitter', 'outsideHitter2', 'middleBlocker2'];
@@ -31,6 +32,30 @@ export function setTeamNames(teamName, opponentName) {
     saveMatch();
 }
 
+// Identifies the match in the saved matches; created on first use.
+export function getMatchId() {
+    if (!config.id) {
+        config.id = uuidv4();
+        saveMatch();
+    }
+    return config.id;
+}
+
+// The whole configuration, for saving the match; `replaceMatchConfig` brings a saved one back.
+export function getMatchConfig() {
+    return structuredClone(config);
+}
+
+export function replaceMatchConfig(saved) {
+    config = { teamName: '', opponentName: '', sets: {}, ...saved };
+    saveMatch();
+}
+
+// Our team name stays for the next match; everything else starts fresh.
+export function startNewMatch() {
+    replaceMatchConfig({ teamName: config.teamName, id: uuidv4() });
+}
+
 // `{ setterStart: 1-6, weServeFirst: bool, ourSide?: 'left' | 'right' }` or null.
 export function getSetSetup(set) {
     return config.sets[set] || null;
@@ -50,12 +75,6 @@ export function defaultSide(set) {
 
 export function setSetSetup(set, setup) {
     config.sets[set] = setup;
-    saveMatch();
-}
-
-export function clearSetSetups() {
-    config.sets = {};
-    config.liberoTarget = null;
     saveMatch();
 }
 

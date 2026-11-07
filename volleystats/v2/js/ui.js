@@ -9,7 +9,7 @@ import { onChange } from './dom.js';
 import { closeAllModals } from './modal.js';
 
 const SCREENS = {
-    registration: { sections: ['match-setup', 'registration', 'settings', 'version-hint'], render: renderRegistration },
+    registration: { sections: ['match-setup', 'saved-matches', 'registration', 'settings', 'version-hint'], render: renderRegistration },
     actions: { sections: ['action-tracking'], render: renderTracker },
     statistics: { sections: ['statistics'], render: renderStats }
 };

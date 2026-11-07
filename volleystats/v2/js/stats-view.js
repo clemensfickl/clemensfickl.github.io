@@ -1,15 +1,14 @@
-// Statistics screen: stats tables with set filter, CSV exports and reset.
-import { ACTIONS, getEvents, resetEvents } from './actions.js';
+// Statistics screen: stats tables with set filter and CSV exports.
+import { ACTIONS, getEvents } from './actions.js';
 import { getPlayers } from './players.js';
 import { aggregate, winnersErrors, sumOpp, setsWithEvents } from './stats.js';
-import { getTeamNames, clearSetSetups } from './match.js';
-import { clearHistory } from './history.js';
+import { getTeamNames } from './match.js';
 import { buildRotationTable, buildPointLog, pointLogCsvRows } from './rally-view.js';
 import { buildEfficiencyTable } from './efficiency-view.js';
 import { buildPointSources } from './point-sources.js';
 import { buildReceptionTable, buildPressureTable, buildSetComparisonTable } from './team-view.js';
 import { buildServingTable, buildAttackDistributionTable, buildPlusMinusTable } from './player-rally-view.js';
-import { el, button, notifyChange } from './dom.js';
+import { el, button } from './dom.js';
 import { exportCSV } from './export-csv.js';
 
 const TABS = [['players', 'Players'], ['team', 'Team'], ['points', 'Points']];
@@ -23,14 +22,6 @@ export function initStats() {
     });
     document.getElementById('export-points-csv').addEventListener('click', () => {
         exportCSV(pointLogCsvRows(), 'volleyball-point-log.csv');
-    });
-    document.getElementById('reset-stats').addEventListener('click', () => {
-        if (!confirm('Start a new match? This deletes all recorded actions, scores and set lineups. Players and team names are kept. This cannot be undone!')) return;
-        resetEvents();
-        clearHistory();
-        clearSetSetups();
-        statsFilter = 'total';
-        notifyChange();
     });
 }
 

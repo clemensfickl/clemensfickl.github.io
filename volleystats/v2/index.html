@@ -25,6 +25,13 @@
                 <label for="opponent-name">Opponent</label>
                 <input type="text" id="opponent-name" placeholder="Opponent">
             </div>
+            <div class="match-actions">
+                <button id="new-match" class="btn btn-secondary">New match</button>
+            </div>
+        </section>
+        <section id="saved-matches" class="card">
+            <h2>Saved matches</h2>
+            <div id="saved-match-list"></div>
         </section>
         <section id="registration" class="card">
             <h2>Player Registration</h2>
@@ -80,7 +87,6 @@
             <div class="stats-actions">
                 <button id="export-csv" class="btn btn-secondary">Export stats CSV</button>
                 <button id="export-points-csv" class="btn btn-secondary">Export point log CSV</button>
-                <button id="reset-stats" class="btn btn-danger">New match</button>
             </div>
         </section>
     </main>

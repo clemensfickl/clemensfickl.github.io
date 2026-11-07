@@ -1177,6 +1177,117 @@ select {
     min-width: 0;
 }
 
+.match-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.6rem;
+}
+
+/* Saved matches */
+.saved-team + .saved-team {
+    margin-top: 0.75rem;
+}
+
+.saved-team-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.3rem;
+}
+
+.saved-team-header h3 {
+    overflow: hidden;
+    margin: 0;
+    font-size: 0.95rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.btn-link {
+    flex: none;
+    padding: 0.25rem 0.4rem;
+    border: none;
+    background: none;
+    color: var(--primary);
+    font-size: 0.85rem;
+}
+
+.saved-match-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.saved-match {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    width: 100%;
+    padding: 0.55rem 0.6rem;
+    border: none;
+    border-top: 1px solid var(--border);
+    background: none;
+    color: var(--text);
+    font: inherit;
+    font-size: 0.9rem;
+    text-align: left;
+    cursor: pointer;
+}
+
+.saved-match.open {
+    border-radius: 8px;
+    border-top-color: transparent;
+    background: var(--primary-soft);
+    cursor: default;
+}
+
+.saved-date {
+    flex: none;
+    width: 5.5rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+
+.saved-opponent {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.saved-open {
+    flex: none;
+    padding: 0.05rem 0.45rem;
+    border-radius: 999px;
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.saved-score {
+    flex: none;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.saved-score.win { color: var(--positive); }
+.saved-score.loss { color: var(--negative); }
+
+.saved-match-form {
+    margin: 0.75rem 0 0.25rem;
+}
+
+.saved-match-form input[type="date"] {
+    min-width: 0;
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font: inherit;
+}
+
 /* Modal */
 .modal-overlay {
     position: fixed;
@@ -1211,7 +1322,8 @@ select {
     margin-top: 1rem;
 }
 
-.modal-buttons .modal-undo {
+.modal-buttons .modal-undo,
+.modal-buttons .modal-start {
     margin-right: auto;
 }
 

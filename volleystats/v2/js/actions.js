@@ -27,10 +27,17 @@ export function pointWinner(event) {
 
 let events = [];
 let currentSet = 1;
+let startedAt = null;
 
 export function loadEvents() {
     events = load('events', []);
     currentSet = load('currentSet', 1);
+    startedAt = load('startedAt', null);
+}
+
+// When the first event of the match was recorded (ms), or null.
+export function getStartedAt() {
+    return startedAt;
 }
 
 export function getEvents() {
@@ -50,6 +57,10 @@ export function setCurrentSet(setNumber) {
 function record(event) {
     const entry = { ...event, set: currentSet };
     if (pointWinner(entry)) entry.onCourt = onCourtIds();
+    if (!startedAt) {
+        startedAt = Date.now();
+        save('startedAt', startedAt);
+    }
     events.push(entry);
     save('events', events);
 }
@@ -102,7 +113,15 @@ export function appendEvents(list) {
 }
 
 export function resetEvents() {
-    events = [];
-    remove('events');
-    setCurrentSet(1);
+    replaceEvents([], 1, null);
+}
+
+export function replaceEvents(list, set, started) {
+    events = list;
+    startedAt = started;
+    if (list.length) save('events', events);
+    else remove('events');
+    if (started) save('startedAt', started);
+    else remove('startedAt');
+    setCurrentSet(set);
 }

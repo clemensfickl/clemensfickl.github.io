@@ -1,9 +1,10 @@
-// Configuration screen: team names, roster and settings. The lineup is set per set on the Actions screen.
+// Configuration screen: team names, saved matches, roster and settings. The lineup is set per set on the Actions screen.
 import { addPlayer, removePlayer, getPlayers, countImportableV1Players, importV1Players } from './players.js';
 import { getRawTeamNames, setTeamNames, setAppliedLiberoTarget } from './match.js';
 import { getActionsLayout, setActionsLayout, getAutoLibero, setAutoLibero, getR1OppositeOnFour, setR1OppositeOnFour,
     getCourtPositions, setCourtPositions } from './settings.js';
 import { renderScoreboard } from './scoreboard.js';
+import { initArchive, renderArchive } from './archive-view.js';
 import { el, button, notifyChange } from './dom.js';
 
 const teamInput = () => document.getElementById('team-name');
@@ -29,12 +30,14 @@ export function initRegistration() {
         input.focus();
         notifyChange();
     });
+    initArchive();
 }
 
 export function renderRegistration() {
     const names = getRawTeamNames();
     if (document.activeElement !== teamInput()) teamInput().value = names.team;
     if (document.activeElement !== opponentInput()) opponentInput().value = names.opponent;
+    renderArchive();
     renderPlayerList();
     renderSettings();
 }
