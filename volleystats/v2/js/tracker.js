@@ -25,6 +25,9 @@ const OPP_ACTIONS = {
     Oth: ['positive', 'negative']
 };
 const POSITION_FILTER = { Serv: [1], Blk: FRONT_ROW };
+// Who usually takes the serve: the outsides and the libero are marked, everyone else can still record.
+const RECEIVER_ROLES = ['outsideHitter1', 'outsideHitter2'];
+const isReceiver = player => !!player.liberoNo || RECEIVER_ROLES.includes(player.role);
 
 let selectedAction = null;
 let flash = null;
@@ -97,9 +100,10 @@ export function renderTracker() {
 
     const list = el('div', 'onfield-list');
     const allowed = POSITION_FILTER[selectedAction];
-    const players = courtPlayers(state).map(({ player, pos }) => ({
-        player, pos, active: inPlay && (!pos || !allowed || allowed.includes(pos))
-    }));
+    const players = courtPlayers(state).map(({ player, pos }) => {
+        const active = inPlay && (!pos || !allowed || allowed.includes(pos));
+        return { player, pos, active, receiver: active && selectedAction === 'Recv' && isReceiver(player) };
+    });
     // The court needs the rotation; until the lineup is set the list is shown.
     if (getActionsLayout() !== 'list' && state.setterPos) {
         const backRow = player => !FRONT_ROW.includes(courtPosition(player.role, state.setterPos));
@@ -123,7 +127,7 @@ export function renderTracker() {
             liberoLabel
         }));
     } else {
-        players.forEach(({ player, pos, active }) => list.appendChild(renderPlayerRow(player, pos, active, setAgg, totalAgg)));
+        players.forEach(entry => list.appendChild(renderPlayerRow(entry, setAgg, totalAgg)));
     }
     list.appendChild(renderOpponentRow(setAgg, totalAgg, blocked.them));
     container.appendChild(list);
@@ -330,15 +334,15 @@ function substitution(player, target, { backRow, inPlay }) {
 }
 
 // Inactive rows (e.g. everyone but the server) keep only the substitution buttons.
-function renderPlayerRow(player, pos, active, setAgg, totalAgg) {
+function renderPlayerRow({ player, pos, active, receiver }, setAgg, totalAgg) {
     let className = 'onfield-row';
     if (!active) className += ' inactive';
     if (player.liberoNo) className += ' libero';
+    if (receiver) className += ' receiver';
     const row = el('div', className + flashClass(player.id));
     const name = el('div', 'onfield-name');
     if (pos) name.appendChild(el('span', 'pos-badge' + (FRONT_ROW.includes(pos) ? ' front' : ''), pos));
-    name.appendChild(document.createTextNode(player.liberoNo ? `${player.name} (${liberoLabel(player.liberoNo)})` : player.name));
-    row.appendChild(name);
+    name.appendChild(document.createTextNode(player.liberoNo ? `${player.name} (${liberoLabel(player.liberoNo)})` : player.name));    row.appendChild(name);
 
     const controls = el('div', 'onfield-controls stats-controls');
     Object.entries(OUTCOME_SYMBOLS).forEach(([outcome, symbol]) => {

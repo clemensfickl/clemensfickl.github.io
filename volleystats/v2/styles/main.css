@@ -560,12 +560,18 @@ select {
     color: var(--primary);
 }
 
-.cp-role.cp-serve {
+.court-player-cell .cp-role.cp-cue {
     flex: none;
     padding: 0 0.3rem;
     border-radius: 999px;
     background: #fef3c7;
     color: #92400e;
+}
+
+/* A ring rather than the border, so the libero keeps her colour. */
+.court-player-cell.receiver,
+.onfield-row.receiver {
+    box-shadow: 0 0 0 2px #f59e0b;
 }
 
 .cp-name {

@@ -29,7 +29,7 @@ function playingSpot(role, pos, unswitchedFront) {
     return (FRONT_ROW.includes(pos) ? front : BACK_SPOTS)[KIND[role]];
 }
 
-// `players`: [{ player, pos, active }] with the rotational position.
+// `players`: [{ player, pos, active, receiver }] with the rotational position; `receiver` marks the usual receivers.
 // `ctx.substitution(player, target)` returns the substitution for a drop, or null if it isn't allowed;
 // a target is { player }, { libero: n } or { bench: true }. `ctx.orientation` as in court-layout.js.
 // `ctx.byRotation`: players stay on their rotational positions instead of where they play.
@@ -111,20 +111,22 @@ export function renderCourt(players, reserve, ctx) {
     return wrap;
 }
 
-function renderCell({ player, pos, active }, ctx) {
+function renderCell({ player, pos, active, receiver }, ctx) {
     let className = 'court-player-cell';
     if (!active) className += ' inactive';
     if (player.liberoNo) className += ' libero';
+    if (receiver) className += ' receiver';
     const cell = el('div', className + ctx.flashClass(player.id));
 
     const head = el('div', 'cp-head');
     const serving = ctx.selectedAction === 'Serv' && active && pos === 1;
+    const cue = serving ? 'Serve' : receiver ? 'Recv' : null;
     const playing = ctx.playingRole(player.role);
     const role = player.liberoNo ? ctx.liberoLabel(player.liberoNo) : SHORT[playing];
     let roleClass = 'cp-role';
-    if (serving) roleClass += ' cp-serve';
+    if (cue) roleClass += ' cp-cue';
     else if (playing === 'setter' && !player.liberoNo) roleClass += ' setter';
-    head.appendChild(el('span', roleClass, serving ? 'Serve' : role));
+    head.appendChild(el('span', roleClass, cue || role));
     head.appendChild(el('span', 'cp-counts', ctx.counts(player)));
     cell.appendChild(head);
     cell.appendChild(el('div', 'cp-name', player.name));
