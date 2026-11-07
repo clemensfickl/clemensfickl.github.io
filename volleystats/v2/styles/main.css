@@ -568,8 +568,22 @@ select {
     color: #92400e;
 }
 
+/* Blue stands out against the orange court; the libero keeps her own background. */
+.court-player-cell.receiver {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+}
+
+.court-player-cell.libero.receiver {
+    background: var(--libero-soft);
+}
+
+.court-player-cell.receiver .cp-role.cp-cue {
+    background: var(--primary);
+    color: #fff;
+}
+
 /* A ring rather than the border, so the libero keeps her colour. */
-.court-player-cell.receiver,
 .onfield-row.receiver {
     box-shadow: 0 0 0 2px #f59e0b;
 }
