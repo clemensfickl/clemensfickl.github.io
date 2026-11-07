@@ -1322,6 +1322,82 @@ select {
     font-weight: 400;
 }
 
+.efficiency-table td,
+.efficiency-table th {
+    padding: 0.45rem 0.4rem;
+}
+
+.efficiency-table tfoot td {
+    border-top: 2px solid var(--border);
+    font-weight: 700;
+}
+
+.point-sources {
+    display: grid;
+    gap: 1rem;
+}
+
+.source-head {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.35rem;
+    font-weight: 700;
+}
+
+.source-bar {
+    display: flex;
+    overflow: hidden;
+    height: 0.6rem;
+    margin-bottom: 0.5rem;
+    border-radius: 999px;
+    background: #f1f5f9;
+}
+
+.source-bar-part {
+    height: 100%;
+}
+
+.source-swatch {
+    flex: none;
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 2px;
+}
+
+.source-side.us .part-0 { background: var(--positive); }
+.source-side.us .part-1 { background: #86efac; }
+.source-side.them .part-0 { background: var(--negative); }
+.source-side.them .part-1 { background: #fca5a5; }
+.source-side .part-2 { background: #cbd5e1; }
+
+.source-part + .source-part {
+    margin-top: 0.4rem;
+}
+
+.source-part-head {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.source-label {
+    flex: 1;
+}
+
+.source-count {
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.source-action {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.1rem 0 0.1rem 1rem;
+    font-size: 0.85rem;
+}
+
 .point-log-set + .point-log-set {
     margin-top: 0.6rem;
     padding-top: 0.6rem;

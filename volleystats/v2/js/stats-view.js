@@ -5,10 +5,12 @@ import { aggregate, winnersErrors, sumOpp, setsWithEvents } from './stats.js';
 import { getTeamNames, clearSetSetups } from './match.js';
 import { clearHistory } from './history.js';
 import { buildRotationTable, buildPointLog, pointLogCsvRows } from './rally-view.js';
+import { buildEfficiencyTable } from './efficiency-view.js';
+import { buildPointSources } from './point-sources.js';
 import { el, button, notifyChange } from './dom.js';
 import { exportCSV } from './export-csv.js';
 
-const TABS = [['players', 'Players'], ['rotations', 'Rotations'], ['points', 'Point log']];
+const TABS = [['players', 'Players'], ['rotations', 'Rotations'], ['points', 'Points']];
 
 let statsFilter = 'total';
 let statsTab = 'players';
@@ -48,15 +50,27 @@ export function renderStats() {
     disp.appendChild(renderTabs());
     const filteredSets = statsFilter === 'total' ? sets : [Number(statsFilter)];
     if (statsTab === 'players') {
-        disp.appendChild(section(buildStatsTable(aggregate(events, statsFilter)), 'table-card'));
+        const agg = aggregate(events, statsFilter);
+        disp.appendChild(section(buildStatsTable(agg), { cardClass: 'table-card' }));
+        const efficiency = buildEfficiencyTable(agg);
+        if (efficiency) {
+            disp.appendChild(section(efficiency, {
+                title: 'Efficiency',
+                cardClass: 'table-card',
+                note: 'Share of attempts. Good: reception +. Kill: attack point. Eff: kills minus errors per attack.'
+            }));
+        }
     } else if (statsTab === 'rotations') {
         const rotations = buildRotationTable(filteredSets);
         disp.appendChild(rotations
-            ? section(rotations, 'table-card', 'Rotation = setter position. Side-out: points won when receiving. Break: points won when serving.')
+            ? section(rotations, { cardClass: 'table-card', note: 'Rotation = setter position. Side-out: points won when receiving. Break: points won when serving.' })
             : emptyTab('No points with a known rotation yet. Set the lineup to track rotations.'));
     } else {
+        const sources = buildPointSources(filteredSets);
         const pointLog = buildPointLog(filteredSets);
-        disp.appendChild(pointLog ? section(pointLog) : emptyTab('No points recorded yet.'));
+        if (!sources && !pointLog) disp.appendChild(emptyTab('No points recorded yet.'));
+        if (sources) disp.appendChild(section(sources, { title: 'Where points came from' }));
+        if (pointLog) disp.appendChild(section(pointLog, { title: 'Point log' }));
     }
 }
 
@@ -79,8 +93,9 @@ function emptyTab(text) {
     return el('p', 'empty-state', text);
 }
 
-function section(content, cardClass = '', note = '') {
+function section(content, { title = '', cardClass = '', note = '' } = {}) {
     const wrap = el('section', 'stats-section');
+    if (title) wrap.appendChild(el('h3', null, title));
     const card = el('div', `card ${cardClass}`.trim());
     card.appendChild(content);
     wrap.appendChild(card);

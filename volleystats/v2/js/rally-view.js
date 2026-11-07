@@ -7,7 +7,7 @@ import { el } from './dom.js';
 
 const OUTCOME_SYMBOLS = { positive: '+', neutral: '~', negative: '-' };
 
-function percent(won, total) {
+export function percent(won, total) {
     return total ? `${Math.round((won / total) * 100)}%` : '–';
 }
 
@@ -47,7 +47,8 @@ function rotationRow(label, r) {
     return tr;
 }
 
-function rateCell(won, total) {
+// A percentage with the count it comes from below it, or – without any attempts.
+export function rateCell(won, total) {
     const td = el('td', 'rate-cell', percent(won, total));
     if (total) td.appendChild(el('span', 'rate-detail', `${won}/${total}`));
     return td;
