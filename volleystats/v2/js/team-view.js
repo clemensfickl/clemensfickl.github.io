@@ -1,5 +1,5 @@
 // Team tab tables built from rallies.
-import { receptionSideOut, pressureStats, pressureFrom } from './rally-stats.js';
+import { receptionSideOut, pressureStats, pressureFrom, setComparison } from './rally-stats.js';
 import { rateCell, tableHead } from './rally-view.js';
 import { el } from './dom.js';
 
@@ -22,6 +22,35 @@ export function buildReceptionTable(sets) {
     const tfoot = el('tfoot');
     tfoot.appendChild(receptionRow('All', total));
     table.appendChild(tfoot);
+    return table;
+}
+
+const COMPARISON_ROWS = [
+    ['Side-out', s => rateCell(s.recvWon, s.recvRallies)],
+    ['Break', s => rateCell(s.servWon, s.servRallies)],
+    ['Aces', s => el('td', 'stat-positive', s.aces)],
+    ['Own errors', s => el('td', 'stat-negative', s.ownErrors)],
+    ['Attack eff', s => rateCell(s.kills - s.attackErrors, s.attacks)]
+];
+
+// Sets as columns, so trends from set to set read left to right.
+export function buildSetComparisonTable(sets) {
+    const columns = setComparison(sets).filter(s => s.us + s.them > 0);
+    if (columns.length < 2) return null;
+    const table = el('table', 'stats-table comparison-table');
+    table.appendChild(tableHead(['', ...columns.map(s => `Set ${s.set}`)]));
+    const tbody = el('tbody');
+    const scoreRow = el('tr', 'comparison-score');
+    scoreRow.appendChild(el('td', 'player-name-col', 'Score'));
+    columns.forEach(s => scoreRow.appendChild(el('td', s.us > s.them ? 'stat-positive' : s.us < s.them ? 'stat-negative' : null, `${s.us}:${s.them}`)));
+    tbody.appendChild(scoreRow);
+    COMPARISON_ROWS.forEach(([label, render]) => {
+        const tr = el('tr');
+        tr.appendChild(el('td', 'player-name-col', label));
+        columns.forEach(s => tr.appendChild(render(s)));
+        tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
     return table;
 }
 

@@ -1332,6 +1332,15 @@ select {
     font-weight: 700;
 }
 
+.comparison-table td,
+.comparison-table th {
+    padding: 0.45rem 0.3rem;
+}
+
+.comparison-table .comparison-score td {
+    font-weight: 700;
+}
+
 .distribution-table td,
 .distribution-table th {
     padding: 0.45rem 0.3rem;

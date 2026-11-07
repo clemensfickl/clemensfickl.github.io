@@ -31,6 +31,34 @@ export function receptionSideOut(sets) {
     return rows;
 }
 
+// Key figures of each set side by side.
+export function setComparison(sets, events = getEvents()) {
+    return sets.map(set => {
+        const state = replaySet(set, events);
+        const s = { set, us: state.us, them: state.them, recvRallies: 0, recvWon: 0, servRallies: 0, servWon: 0, aces: 0, ownErrors: 0, attacks: 0, kills: 0, attackErrors: 0 };
+        state.log.forEach(({ winner, servedBy }) => {
+            if (servedBy === 'them') {
+                s.recvRallies++;
+                if (winner === 'us') s.recvWon++;
+            } else if (servedBy === 'us') {
+                s.servRallies++;
+                if (winner === 'us') s.servWon++;
+            }
+        });
+        events.forEach(e => {
+            if (e.set !== set || e.type !== 'player') return;
+            if (e.outcome === 'negative') s.ownErrors++;
+            if (e.action === 'Serv' && e.outcome === 'positive') s.aces++;
+            if (e.action === 'Atk') {
+                s.attacks++;
+                if (e.outcome === 'positive') s.kills++;
+                if (e.outcome === 'negative') s.attackErrors++;
+            }
+        });
+        return s;
+    });
+}
+
 export function pressureFrom(set) {
     return set === 5 ? 10 : 20;
 }

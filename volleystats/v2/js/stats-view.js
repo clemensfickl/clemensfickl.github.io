@@ -7,7 +7,7 @@ import { clearHistory } from './history.js';
 import { buildRotationTable, buildPointLog, pointLogCsvRows } from './rally-view.js';
 import { buildEfficiencyTable } from './efficiency-view.js';
 import { buildPointSources } from './point-sources.js';
-import { buildReceptionTable, buildPressureTable } from './team-view.js';
+import { buildReceptionTable, buildPressureTable, buildSetComparisonTable } from './team-view.js';
 import { buildServingTable, buildAttackDistributionTable } from './player-rally-view.js';
 import { el, button, notifyChange } from './dom.js';
 import { exportCSV } from './export-csv.js';
@@ -90,11 +90,19 @@ export function renderStats() {
 }
 
 function renderTeamTab(disp, sets) {
+    const comparison = buildSetComparisonTable(sets);
     const rotations = buildRotationTable(sets);
     const reception = buildReceptionTable(sets);
-    if (!rotations && !reception) {
+    if (!comparison && !rotations && !reception) {
         disp.appendChild(emptyTab('No points recorded yet. Set the lineup to see side-out and break rates per rotation.'));
         return;
+    }
+    if (comparison) {
+        disp.appendChild(section(comparison, {
+            title: 'Set comparison',
+            cardClass: 'table-card',
+            note: 'Attack eff: attack points minus attack errors per attack.'
+        }));
     }
     disp.appendChild(rotations
         ? section(rotations, { title: 'Rotations', cardClass: 'table-card', note: 'Rotation = setter position. Side-out: points won when receiving. Break: points won when serving.' })
