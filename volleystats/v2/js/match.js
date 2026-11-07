@@ -123,6 +123,7 @@ export function replaySet(set, events = getEvents()) {
         ourSide: getOurSide(set)
     };
 
+    let rally = [];
     events.forEach(e => {
         if (e.set !== set) return;
         if (e.type === 'rotate') {
@@ -141,6 +142,7 @@ export function replaySet(set, events = getEvents()) {
             state.ourSide = state.ourSide === 'left' ? 'right' : 'left';
             return;
         }
+        rally.push(e);
         const winner = pointWinner(e);
         if (!winner) return;
 
@@ -151,7 +153,8 @@ export function replaySet(set, events = getEvents()) {
             state.setterPos = rotate(state.setterPos);
         }
         state.serving = winner;
-        state.log.push({ us: state.us, them: state.them, winner, event: e, servedBy, rotation });
+        state.log.push({ us: state.us, them: state.them, winner, event: e, servedBy, rotation, rally });
+        rally = [];
     });
     return state;
 }

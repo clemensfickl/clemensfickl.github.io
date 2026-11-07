@@ -1,0 +1,32 @@
+// Statistics built from whole rallies: what happened between one point and the next.
+import { getEvents } from './actions.js';
+import { replaySet } from './match.js';
+
+// Every completed rally of the sets, as point log entries from `replaySet` with their set.
+export function rallies(sets, events = getEvents()) {
+    return sets.flatMap(set => replaySet(set, events).log.map(entry => ({ ...entry, set })));
+}
+
+const isOur = (e, action) => e?.type === 'player' && e.action === action;
+
+// Receiving rallies grouped by our first reception. An opponent ace counts as a failed reception; rallies
+// without a recorded reception (an opponent serve error, a manually added point) are left out.
+// First ball: the action right after the reception is our attack point.
+export function receptionSideOut(sets) {
+    const rows = Object.fromEntries(['positive', 'neutral', 'negative']
+        .map(q => [q, { rallies: 0, won: 0, firstBall: 0 }]));
+    rallies(sets).forEach(({ rally, winner, servedBy }) => {
+        if (servedBy !== 'them') return;
+        const index = rally.findIndex(e => isOur(e, 'Recv'));
+        if (index === -1) {
+            if (rally[0].type === 'oppPoint' && rally[0].action === 'Serv') rows.negative.rallies++;
+            return;
+        }
+        const row = rows[rally[index].outcome];
+        row.rallies++;
+        if (winner === 'us') row.won++;
+        const next = rally[index + 1];
+        if (isOur(next, 'Atk') && next.outcome === 'positive') row.firstBall++;
+    });
+    return rows;
+}

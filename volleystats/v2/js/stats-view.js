@@ -7,10 +7,11 @@ import { clearHistory } from './history.js';
 import { buildRotationTable, buildPointLog, pointLogCsvRows } from './rally-view.js';
 import { buildEfficiencyTable } from './efficiency-view.js';
 import { buildPointSources } from './point-sources.js';
+import { buildReceptionTable } from './team-view.js';
 import { el, button, notifyChange } from './dom.js';
 import { exportCSV } from './export-csv.js';
 
-const TABS = [['players', 'Players'], ['rotations', 'Rotations'], ['points', 'Points']];
+const TABS = [['players', 'Players'], ['team', 'Team'], ['points', 'Points']];
 
 let statsFilter = 'total';
 let statsTab = 'players';
@@ -60,17 +61,33 @@ export function renderStats() {
                 note: 'Share of attempts. Good: reception +. Kill: attack point. Eff: kills minus errors per attack.'
             }));
         }
-    } else if (statsTab === 'rotations') {
-        const rotations = buildRotationTable(filteredSets);
-        disp.appendChild(rotations
-            ? section(rotations, { cardClass: 'table-card', note: 'Rotation = setter position. Side-out: points won when receiving. Break: points won when serving.' })
-            : emptyTab('No points with a known rotation yet. Set the lineup to track rotations.'));
+    } else if (statsTab === 'team') {
+        renderTeamTab(disp, filteredSets);
     } else {
         const sources = buildPointSources(filteredSets);
         const pointLog = buildPointLog(filteredSets);
         if (!sources && !pointLog) disp.appendChild(emptyTab('No points recorded yet.'));
         if (sources) disp.appendChild(section(sources, { title: 'Where points came from' }));
         if (pointLog) disp.appendChild(section(pointLog, { title: 'Point log' }));
+    }
+}
+
+function renderTeamTab(disp, sets) {
+    const rotations = buildRotationTable(sets);
+    const reception = buildReceptionTable(sets);
+    if (!rotations && !reception) {
+        disp.appendChild(emptyTab('No points recorded yet. Set the lineup to see side-out and break rates per rotation.'));
+        return;
+    }
+    disp.appendChild(rotations
+        ? section(rotations, { title: 'Rotations', cardClass: 'table-card', note: 'Rotation = setter position. Side-out: points won when receiving. Break: points won when serving.' })
+        : section(emptyTab('Set the lineup to track rotations.'), { title: 'Rotations' }));
+    if (reception) {
+        disp.appendChild(section(reception, {
+            title: 'Side-out by reception',
+            cardClass: 'table-card',
+            note: 'Receiving rallies by the quality of our first reception; an opponent ace counts as an error. First ball: our attack right after the reception scored.'
+        }));
     }
 }
 
