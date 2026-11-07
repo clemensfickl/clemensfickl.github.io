@@ -1489,6 +1489,37 @@ select {
     vector-effect: non-scaling-stroke;
 }
 
+.set-runs {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.3rem 0.6rem;
+    align-items: center;
+    margin: 0 0 0.6rem;
+    font-size: 0.8rem;
+}
+
+.set-runs-label {
+    grid-row: span 2;
+    color: var(--muted);
+}
+
+.set-run {
+    display: flex;
+    gap: 0.45rem;
+    align-items: center;
+    min-width: 0;
+}
+
+.set-run .point-actor {
+    flex: 0 1 auto;
+    min-width: 0;
+}
+
+.set-run-range {
+    flex: none;
+    color: var(--muted);
+}
+
 .score-chart-scale {
     display: flex;
     flex-direction: column;

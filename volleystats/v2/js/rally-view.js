@@ -4,6 +4,7 @@ import { getPlayers } from './players.js';
 import { replaySet, rotationStats, getTeamNames } from './match.js';
 import { setsWithEvents } from './stats.js';
 import { buildScoreChart } from './score-chart.js';
+import { longestRuns } from './rally-stats.js';
 import { el } from './dom.js';
 
 const OUTCOME_SYMBOLS = { positive: '+', neutral: '~', negative: '-' };
@@ -112,6 +113,7 @@ export function buildPointLog(sets) {
         details.appendChild(summary);
 
         details.appendChild(buildScoreChart(state.log));
+        details.appendChild(renderRuns(longestRuns(state.log), names));
 
         const list = el('ol', 'point-list');
         state.log.forEach(entry => {
@@ -125,6 +127,21 @@ export function buildPointLog(sets) {
         wrap.appendChild(details);
     });
     return wrap.children.length ? wrap : null;
+}
+
+function renderRuns(runs, names) {
+    const wrap = el('div', 'set-runs');
+    wrap.appendChild(el('span', 'set-runs-label', 'Longest run'));
+    [['us', names.team], ['them', names.opponent]].forEach(([side, name]) => {
+        const run = runs[side];
+        if (!run) return;
+        const row = el('span', 'set-run');
+        row.appendChild(el('span', `point-actor ${side}`, name));
+        row.appendChild(el('strong', null, `${run.length}`));
+        row.appendChild(el('span', 'set-run-range', `${run.from} → ${run.to}`));
+        wrap.appendChild(row);
+    });
+    return wrap;
 }
 
 export function pointLogCsvRows() {

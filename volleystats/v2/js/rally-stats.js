@@ -31,6 +31,22 @@ export function receptionSideOut(sets) {
     return rows;
 }
 
+// The longest run of consecutive points per team in a set's `replaySet` log, with the scores it went from
+// and to; null for a team without points.
+export function longestRuns(log) {
+    const best = { us: null, them: null };
+    let start = 0;
+    log.forEach((entry, i) => {
+        if (i > 0 && log[i - 1].winner !== entry.winner) start = i;
+        const length = i - start + 1;
+        if (!best[entry.winner] || length > best[entry.winner].length) {
+            const before = start > 0 ? log[start - 1] : { us: 0, them: 0 };
+            best[entry.winner] = { length, from: `${before.us}:${before.them}`, to: `${entry.us}:${entry.them}` };
+        }
+    });
+    return best;
+}
+
 // Key figures of each set side by side.
 export function setComparison(sets, events = getEvents()) {
     return sets.map(set => {
