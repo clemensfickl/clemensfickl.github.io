@@ -95,7 +95,7 @@ function shade(td, tone, strength) {
 
 // A rate is shaded only with a fair share of the attempts, so 1 of 1 doesn't stand out.
 export function rateOrNull(made, attempts, mostAttempts) {
-    return attempts >= Math.max(3, mostAttempts / 3) ? made / attempts : null;
+    return attempts >= Math.max(3, mostAttempts / 5) ? made / attempts : null;
 }
 
 // How an action reads in the point log and history, for whichever team made it. A good reception and every ~
