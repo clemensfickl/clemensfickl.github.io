@@ -58,7 +58,7 @@ export function renderStats() {
             disp.appendChild(section(serving, {
                 title: 'Serving',
                 cardClass: 'table-card',
-                note: 'Break: rallies won when this player served. Best run: most points in a row in one service turn.'
+                note: 'Break: rallies won when this player served. Best run: most points in a row in one service turn. Highlighted: the best of each.'
             }));
         }
         const distribution = buildAttackDistributionTable(filteredSets);
@@ -74,7 +74,7 @@ export function renderStats() {
             disp.appendChild(section(plusMinusTable, {
                 title: 'Plus/minus',
                 cardClass: 'table-card',
-                note: 'Points won and lost while the player was on court. Points recorded before this was added are not counted.'
+                note: 'Points won and lost while the player was on court; highlighted: the best +/−. Points recorded before this was added are not counted.'
             }));
         }
     } else if (statsTab === 'team') {
@@ -104,7 +104,7 @@ function renderTeamTab(disp, sets) {
         }));
     }
     disp.appendChild(rotations
-        ? section(rotations, { title: 'Rotations', cardClass: 'table-card', note: 'Rotation = setter position. Side-out: points won when receiving. Break: points won when serving.' })
+        ? section(rotations, { title: 'Rotations', cardClass: 'table-card', note: 'Rotation = setter position. Side-out: points won when receiving. Break: points won when serving. Highlighted: strongest (blue) and weakest (red) rotation.' })
         : section(emptyTab('Set the lineup to track rotations.'), { title: 'Rotations' }));
     if (reception) {
         disp.appendChild(section(reception, {

@@ -29,12 +29,23 @@ export function buildRotationTable(sets) {
 
     const tbody = el('tbody');
     const total = { won: 0, lost: 0, recvWon: 0, recvRallies: 0, servWon: 0, servRallies: 0 };
-    Object.entries(rows).forEach(([rotation, r]) => {
-        if (r.won + r.lost === 0) return;
-        tbody.appendChild(rotationRow(`R${rotation}`, r));
+    const played = Object.entries(rows).filter(([, r]) => r.won + r.lost > 0);
+    if (played.length === 0) return null;
+    const mostRecv = Math.max(...played.map(([, r]) => r.recvRallies));
+    const mostServ = Math.max(...played.map(([, r]) => r.servRallies));
+    const sideOuts = [];
+    const breaks = [];
+    played.forEach(([rotation, r]) => {
+        const tr = rotationRow(`R${rotation}`, r);
+        sideOuts.push({ td: tr.children[3], value: rateOrNull(r.recvWon, r.recvRallies, mostRecv) });
+        breaks.push({ td: tr.children[4], value: rateOrNull(r.servWon, r.servRallies, mostServ) });
+        tbody.appendChild(tr);
         Object.keys(total).forEach(key => { total[key] += r[key]; });
     });
-    if (!tbody.children.length) return null;
+    [sideOuts, breaks].forEach(column => {
+        markBest(column);
+        markWorst(column);
+    });
     table.appendChild(tbody);
     const tfoot = el('tfoot');
     tfoot.appendChild(rotationRow('Overall', total));
@@ -61,14 +72,23 @@ export function rateCell(won, total) {
 
 // Highlights the cells with a column's best value: the highest, or the lowest with `lowerIsBetter`.
 // Entries with a null value don't compete, and nothing is highlighted while all competitors tie.
-export function markBest(entries, lowerIsBetter = false) {
+export function markBest(entries, lowerIsBetter = false, className = 'best-value') {
     const values = entries.map(e => e.value).filter(v => v !== null);
     if (values.length < 2) return;
     const best = lowerIsBetter ? Math.min(...values) : Math.max(...values);
     if (values.every(v => v === best)) return;
     entries.forEach(e => {
-        if (e.value === best) e.td.classList.add('best-value');
+        if (e.value === best) e.td.classList.add(className);
     });
+}
+
+export function markWorst(entries, lowerIsBetter = false) {
+    markBest(entries, !lowerIsBetter, 'worst-value');
+}
+
+// A rate competes for best or worst only with a fair share of the attempts, so 1 of 1 doesn't win.
+export function rateOrNull(made, attempts, mostAttempts) {
+    return attempts >= Math.max(3, mostAttempts / 3) ? made / attempts : null;
 }
 
 // How an action reads in the point log and history, for whichever team made it. A good reception and every ~

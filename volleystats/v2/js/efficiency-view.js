@@ -1,6 +1,6 @@
 // Ratings per player: how often serves, receptions and attacks went well or wrong, relative to their attempts.
 import { getPlayers } from './players.js';
-import { rateCell, markBest } from './rally-view.js';
+import { rateCell, markBest, rateOrNull } from './rally-view.js';
 import { el } from './dom.js';
 
 // Eff (attack efficiency) is kills minus errors per attempt, so it can be negative. For Err, lower is better.
@@ -11,10 +11,6 @@ const COLUMNS = [
 ];
 
 const attempts = c => c.positive + c.neutral + c.negative;
-
-// Only players with a fair share of the attempts compete for the best rate, so 1 of 1 doesn't win.
-const MIN_ATTEMPTS = 3;
-const MIN_SHARE_OF_MOST = 1 / 3;
 
 // `agg` from stats.js `aggregate`. Returns null while no player has a serve, reception or attack.
 export function buildEfficiencyTable(agg) {
@@ -70,9 +66,8 @@ function efficiencyRow(name, counts, cells = null) {
 function markBestRates(rows, cells) {
     COLUMNS.forEach(col => {
         const most = Math.max(...rows.map(([, counts]) => attempts(counts[col.action])));
-        const minimum = Math.max(MIN_ATTEMPTS, most * MIN_SHARE_OF_MOST);
         col.rates.forEach(rate => {
-            const entries = cells.get(rate).map(({ td, made, n }) => ({ td, value: n >= minimum ? made / n : null }));
+            const entries = cells.get(rate).map(({ td, made, n }) => ({ td, value: rateOrNull(made, n, most) }));
             markBest(entries, rate[2] === true);
         });
     });

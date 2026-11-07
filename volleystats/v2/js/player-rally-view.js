@@ -1,7 +1,7 @@
 // Players tab tables built from rallies.
 import { getPlayers } from './players.js';
 import { servingStats, attackDistribution, plusMinus } from './rally-stats.js';
-import { rateCell, tableHead, markBest } from './rally-view.js';
+import { rateCell, tableHead, markBest, rateOrNull } from './rally-view.js';
 import { el } from './dom.js';
 
 export function buildServingTable(sets) {
@@ -12,7 +12,17 @@ export function buildServingTable(sets) {
     const table = el('table', 'stats-table rotation-table');
     table.appendChild(tableHead(['Server', 'Break', 'Best run']));
     const tbody = el('tbody');
-    rows.forEach(([name, s]) => tbody.appendChild(servingRow(name, s)));
+    const breaks = [];
+    const runs = [];
+    const most = Math.max(...rows.map(([, s]) => s.serves));
+    rows.forEach(([name, s]) => {
+        const tr = servingRow(name, s);
+        breaks.push({ td: tr.children[1], value: rateOrNull(s.won, s.serves, most) });
+        runs.push({ td: tr.children[2], value: s.bestRun });
+        tbody.appendChild(tr);
+    });
+    markBest(breaks);
+    markBest(runs);
     table.appendChild(tbody);
     const total = rows.reduce((sum, [, s]) => ({
         serves: sum.serves + s.serves, won: sum.won + s.won, bestRun: Math.max(sum.bestRun, s.bestRun)
@@ -64,15 +74,19 @@ export function buildPlusMinusTable(sets) {
     const table = el('table', 'stats-table rotation-table');
     table.appendChild(tableHead(['Player', 'Won', 'Lost', '+/−']));
     const tbody = el('tbody');
+    const diffs = [];
     rows.forEach(([name, s]) => {
         const diff = s.won - s.lost;
         const tr = el('tr');
         tr.appendChild(el('td', 'player-name-col', name));
         tr.appendChild(el('td', 'stat-positive', s.won));
         tr.appendChild(el('td', 'stat-negative', s.lost));
-        tr.appendChild(el('td', diff > 0 ? 'stat-positive' : diff < 0 ? 'stat-negative' : null, diff > 0 ? `+${diff}` : diff < 0 ? `−${-diff}` : '0'));
+        const td = el('td', diff > 0 ? 'stat-positive' : diff < 0 ? 'stat-negative' : null, diff > 0 ? `+${diff}` : diff < 0 ? `−${-diff}` : '0');
+        diffs.push({ td, value: diff });
+        tr.appendChild(td);
         tbody.appendChild(tr);
     });
+    markBest(diffs);
     table.appendChild(tbody);
     return table;
 }
