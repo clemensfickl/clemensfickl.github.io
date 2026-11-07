@@ -1,5 +1,6 @@
-// Configuration screen: New match and the saved matches, grouped by our team name.
-import { getArchive, currentSummary, hasCurrentMatch, setsWon, newMatch, openMatch, deleteRecord, updateRecord, renameTeam } from './archive.js';
+// Configuration screen: New match and the saved matches, grouped by our team name, with export and import.
+import { getArchive, currentSummary, hasCurrentMatch, setsWon, newMatch, openMatch, deleteRecord, updateRecord, renameTeam,
+    exportFile, parseMatchesFile, importConflicts, importRecords } from './archive.js';
 import { getRawTeamNames } from './match.js';
 import { openModal } from './modal.js';
 import { showToast } from './toast.js';
@@ -13,6 +14,17 @@ export function initArchive() {
         notifyChange();
         if (saved) showToast('Match saved. New match started.');
     }));
+
+    const fileInput = document.getElementById('import-file');
+    document.getElementById('import-matches').addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', () => run(async () => {
+        const files = [...fileInput.files];
+        fileInput.value = '';
+        const records = [];
+        for (const file of files) records.push(...parseMatchesFile(await file.text()));
+        await importMatches(records);
+    }));
+    document.getElementById('export-matches').addEventListener('click', openExportModal);
 }
 
 // Storage errors (usually a full localStorage) leave the open match untouched.
@@ -23,29 +35,45 @@ async function run(action) {
         console.error(err);
         alert(err?.name === 'QuotaExceededError'
             ? 'Not enough storage left on this device. Delete some saved matches first.'
-            : `Something went wrong: ${err?.message || err}`);
+            : err?.message || String(err));
     }
 }
 
-export function renderArchive() {
-    const container = document.getElementById('saved-match-list');
-    container.innerHTML = '';
+async function importMatches(records) {
+    const conflicts = importConflicts(records);
+    const replace = conflicts.saved > 0 && confirm(conflicts.saved === 1
+        ? 'One of these matches is already saved here. Replace it with the imported version?'
+        : `${conflicts.saved} of these matches are already saved here. Replace them with the imported versions?`);
+    const count = await importRecords(records, replace);
+    notifyChange();
+    const skippedOpen = conflicts.open ? ' The match you have open was not replaced.' : '';
+    showToast(`Imported ${count} ${count === 1 ? 'match' : 'matches'}.${skippedOpen}`);
+}
+
+// Saved matches plus the open one, grouped by our team name: the open match's team first.
+function groupedEntries() {
     const entries = getArchive().map(entry => ({ ...entry, open: false }));
     if (hasCurrentMatch()) entries.push({ ...currentSummary(), open: true });
-    if (entries.length === 0) {
-        container.appendChild(el('p', 'setting-hint', 'Matches are kept here when you start a new match or open another one.'));
-        return;
-    }
-
     const groups = new Map();
     entries.forEach(entry => {
         if (!groups.has(entry.team)) groups.set(entry.team, []);
         groups.get(entry.team).push(entry);
     });
+    groups.forEach(list => list.sort((a, b) => (a.open !== b.open ? (a.open ? -1 : 1) : b.date.localeCompare(a.date))));
     const ourTeam = getRawTeamNames().team || '';
-    [...groups.keys()]
-        .sort((a, b) => (a === ourTeam ? -1 : b === ourTeam ? 1 : a.localeCompare(b)))
-        .forEach(team => container.appendChild(renderGroup(team, groups.get(team))));
+    return [...groups.entries()].sort(([a], [b]) => (a === ourTeam ? -1 : b === ourTeam ? 1 : a.localeCompare(b)));
+}
+
+export function renderArchive() {
+    const container = document.getElementById('saved-match-list');
+    container.innerHTML = '';
+    const groups = groupedEntries();
+    document.getElementById('export-matches').disabled = groups.length === 0;
+    if (groups.length === 0) {
+        container.appendChild(el('p', 'setting-hint', 'Matches are kept here when you start a new match or open another one.'));
+        return;
+    }
+    groups.forEach(([team, entries]) => container.appendChild(renderGroup(team, entries)));
 }
 
 function renderGroup(team, entries) {
@@ -56,11 +84,84 @@ function renderGroup(team, entries) {
     group.appendChild(header);
 
     const list = el('ul', 'saved-match-list');
-    entries
-        .sort((a, b) => (a.open !== b.open ? (a.open ? -1 : 1) : b.date.localeCompare(a.date)))
-        .forEach(entry => list.appendChild(renderEntry(entry)));
+    entries.forEach(entry => list.appendChild(renderEntry(entry)));
     group.appendChild(list);
     return group;
+}
+
+function canShareFiles() {
+    return !!navigator.canShare?.({ files: [new File(['{}'], 'test.json', { type: 'application/json' })] });
+}
+
+function download(file) {
+    const url = URL.createObjectURL(file);
+    const a = el('a');
+    a.href = url;
+    a.download = file.name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function share(file) {
+    try {
+        await navigator.share({ files: [file], title: file.name });
+    } catch (err) {
+        if (err.name !== 'AbortError') throw err;
+    }
+}
+
+function openExportModal() {
+    openModal('Export matches', (modal, close) => {
+        modal.appendChild(el('p', 'modal-text muted', 'The file includes the players of each match, so it can be imported on another device.'));
+        const boxes = [];
+        const list = el('div', 'export-list');
+        groupedEntries().forEach(([team, entries]) => {
+            list.appendChild(el('div', 'export-team', team || 'Unnamed team'));
+            entries.forEach(entry => {
+                const label = el('label', 'export-match');
+                const box = el('input');
+                box.type = 'checkbox';
+                box.checked = true;
+                box.value = entry.id;
+                box.addEventListener('change', update);
+                boxes.push(box);
+                label.appendChild(box);
+                label.appendChild(el('span', 'saved-date', formatDate(entry.date)));
+                label.appendChild(el('span', 'saved-opponent', `vs ${entry.opponent || 'Opponent'}`));
+                if (entry.open) label.appendChild(el('span', 'saved-open', 'Open'));
+                list.appendChild(label);
+            });
+        });
+        const toggle = button('', 'btn btn-link export-toggle', () => {
+            const check = !boxes.every(b => b.checked);
+            boxes.forEach(b => { b.checked = check; });
+            update();
+        });
+        modal.append(toggle, list);
+
+        const selected = () => boxes.filter(b => b.checked).map(b => b.value);
+        const buttons = el('div', 'modal-buttons');
+        buttons.appendChild(button('Cancel', 'btn btn-secondary modal-start', close));
+        const actions = [];
+        if (canShareFiles()) {
+            actions.push(button('Share', 'btn btn-secondary', () => run(async () => {
+                await share(await exportFile(selected()));
+                close();
+            })));
+        }
+        actions.push(button('Download', 'btn btn-primary', () => run(async () => {
+            download(await exportFile(selected()));
+            close();
+        })));
+        buttons.append(...actions);
+        modal.appendChild(buttons);
+
+        function update() {
+            toggle.textContent = boxes.every(b => b.checked) ? 'Select none' : 'Select all';
+            actions.forEach(b => { b.disabled = selected().length === 0; });
+        }
+        update();
+    });
 }
 
 function renderEntry(entry) {

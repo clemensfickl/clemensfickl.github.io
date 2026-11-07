@@ -148,6 +148,67 @@ export async function updateRecord(id, { date, ...names }) {
     await putRecord(record);
 }
 
+const FILE_FORMAT = 'volleystats-matches';
+
+// `ids` may include the open match. Returns a File holding the matches as JSON.
+export async function exportFile(ids) {
+    const openId = hasCurrentMatch() ? getMatchId() : null;
+    const records = [];
+    for (const id of ids) {
+        const record = id === openId ? currentRecord() : await readRecord(id);
+        if (record) records.push(record);
+    }
+    const json = JSON.stringify({ format: FILE_FORMAT, version: 1, exportedAt: new Date().toISOString(), matches: records });
+    return new File([json], fileName(records), { type: 'application/json' });
+}
+
+function fileName(records) {
+    if (records.length !== 1) return `volleystats-matches-${localDate(Date.now())}.json`;
+    const { date, match } = records[0];
+    const slug = `${match.teamName || 'us'}-vs-${match.opponentName || 'opponent'}`
+        .toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    return `volleystats-${date}-${slug}.json`;
+}
+
+function isRecord(r) {
+    return r && typeof r.id === 'string' && Array.isArray(r.events) && Array.isArray(r.players) && r.match && typeof r.match === 'object';
+}
+
+// Throws with a readable message when the text is not an exported matches file.
+export function parseMatchesFile(text) {
+    let data;
+    try {
+        data = JSON.parse(text);
+    } catch {
+        throw new Error('This is not a VolleyStats matches file.');
+    }
+    if (data?.format !== FILE_FORMAT || !Array.isArray(data.matches)) throw new Error('This is not a VolleyStats matches file.');
+    const records = data.matches.filter(isRecord);
+    if (records.length === 0) throw new Error('The file contains no matches.');
+    return records.map(r => ({ ...r, date: r.date || localDate(Date.now()), match: { sets: {}, ...r.match } }));
+}
+
+// Which imported matches are already here: saved ones can be replaced, the open match is never overwritten.
+export function importConflicts(records) {
+    const openId = hasCurrentMatch() ? getMatchId() : null;
+    return {
+        saved: records.filter(r => r.id !== openId && index.some(e => e.id === r.id)).length,
+        open: records.some(r => r.id === openId)
+    };
+}
+
+export async function importRecords(records, replaceSaved) {
+    const openId = hasCurrentMatch() ? getMatchId() : null;
+    let imported = 0;
+    for (const record of records) {
+        if (record.id === openId) continue;
+        if (!replaceSaved && index.some(e => e.id === record.id)) continue;
+        await putRecord(record);
+        imported++;
+    }
+    return imported;
+}
+
 // Renames our team in every saved match with that name, and in the open match.
 export async function renameTeam(from, to) {
     for (const entry of index.filter(e => e.team === from)) await updateRecord(entry.id, { teamName: to });

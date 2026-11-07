@@ -1184,6 +1184,59 @@ select {
 }
 
 /* Saved matches */
+.card-title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-bottom: 0.6rem;
+}
+
+.card-title-row h2 {
+    flex: 1;
+    margin: 0;
+}
+
+.btn-link:disabled {
+    color: #94a3b8;
+}
+
+.export-toggle {
+    display: block;
+    margin: 0.25rem 0 0.25rem auto;
+}
+
+.export-list {
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
+.export-team {
+    margin: 0.5rem 0 0.15rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.export-match {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.4rem 0;
+    border-top: 1px solid var(--border);
+    font-size: 0.9rem;
+}
+
+.export-match input {
+    flex: none;
+    width: 1.1rem;
+    height: 1.1rem;
+    margin: 0;
+    accent-color: var(--primary);
+}
+
+.export-match .saved-date {
+    width: 4.5rem;
+}
 .saved-team + .saved-team {
     margin-top: 0.75rem;
 }

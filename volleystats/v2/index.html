@@ -30,8 +30,13 @@
             </div>
         </section>
         <section id="saved-matches" class="card">
-            <h2>Saved matches</h2>
+            <div class="card-title-row">
+                <h2>Saved matches</h2>
+                <button id="import-matches" class="btn btn-link">Import</button>
+                <button id="export-matches" class="btn btn-link">Export</button>
+            </div>
             <div id="saved-match-list"></div>
+            <input type="file" id="import-file" accept=".json,application/json" multiple hidden>
         </section>
         <section id="registration" class="card">
             <h2>Player Registration</h2>
